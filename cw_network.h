@@ -22,7 +22,6 @@ PubSubClient client(espClient);
 void setupWifi() {
   delay(20);
   Serial.print("Connecting to ");
-  displayLine(1, "Wifi connection.");
   Serial.println(ssid);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
@@ -32,7 +31,6 @@ void setupWifi() {
     Serial.print(".");
   }
   Serial.println("WiFi connected");
-  displayLine(1, "WiFi connected. ");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
 }
@@ -52,11 +50,9 @@ void callback(char* topic, unsigned char* payload, unsigned int length) {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("MQTT connection...");
-    displayLine(1, "MQTT connection.");
     String clientId = "ESP8266Client-" + callsign;
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
-      displayLine(1, "MQTT connected. ");
       client.subscribe(cwTopic);
     } else {
       Serial.print("failed, rc=");
@@ -76,7 +72,10 @@ void initNetwork() {
 
 void checkNetwork() {
   if (!client.connected()) {
+    displayNetworkStatus(false);
     reconnect();
+  } else {
+    displayNetworkStatus(true);
   }
   client.loop();
 }
@@ -119,6 +118,13 @@ void processMsg(String msg) {
     return;
   }
   // 消息处理
+  String sender = msg.substring(0, index);
+  if (callsign == sender) {
+    Serial.print("self:");
+    Serial.println(sender);
+    return;
+  }
+
   list<MorseInput> msgList;
   String message = msg.substring(index + 1);
   while (message.indexOf(";") != -1) {

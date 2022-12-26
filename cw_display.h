@@ -28,19 +28,24 @@ DisplayConf lineConfigArr[] = {
   { 64, 40, u8g2_font_helvR08_tf, "" }
 };
 
+//网络状态
+bool networkStatus;
+
 //初始化显示器
 void initDisplay();
 
 //追加显示内容
 void displayLine(int line, String txt);
 
+//显示网络状态
+void displayNetworkStatus(bool success);
+void displayNetworkStatus();
+
+
 void refreshDisplay() {
 
   display.clearDisplay();  // clear the graphcis buffer
-
-  u8g2_for_adafruit_gfx.setFontMode(1);             // use u8g2 transparent mode (this is default)
-  u8g2_for_adafruit_gfx.setFontDirection(0);        // left to right (this is default)
-  u8g2_for_adafruit_gfx.setForegroundColor(WHITE);  // apply Adafruit GFX color
+  displayNetworkStatus();
 
   // title
   u8g2_for_adafruit_gfx.setFont(lineConfigArr[0].font);         // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
@@ -88,6 +93,25 @@ void displayLine(int line, String txt) {
   lineConfigArr[line].text += txt;
 
   refreshDisplay();
+}
+
+void displayNetworkStatus() {
+  //https://github.com/olikraus/u8g2/wiki/fntgrpiconic#open_iconic_www_2x
+  if (networkStatus) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X048);
+  } else {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X04A);
+  }
+}
+
+
+void displayNetworkStatus(bool success) {
+  if (success != networkStatus) {
+    networkStatus = success;
+    refreshDisplay();
+  }
 }
 
 #endif
