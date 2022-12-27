@@ -19,6 +19,7 @@
  * arduino api:https://www.arduino.cc/reference/en/
  */
 #include "cw_pin.h"
+#include "cw_config.h"
 #include "cw_display.h"
 #include "cw_button.h"
 #include "cw_bee.h"
@@ -28,7 +29,7 @@
 
 void setup() {
   Serial.begin(115200);
-  delay(100);
+  initConfig();
   randomSeed(analogRead(0));
   initDisplay();
   initNetwork();

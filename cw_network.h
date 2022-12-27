@@ -19,17 +19,26 @@ const MorseInput convertInput(String inputStr);
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-void setupWifi() {
-  delay(20);
-  Serial.print("Connecting to ");
-  Serial.println(ssid);
-  WiFi.mode(WIFI_STA);
-  WiFi.begin(ssid, password);
 
+void setupWifi() {
+  changeNetworkStatus(0);
+  delay(20);
+  WiFi.mode(WIFI_STA);
+  Serial.print("Connecting to ");
+  Serial.println(cwConfig.ssid);
+  WiFi.begin(cwConfig.ssid, cwConfig.password);
+  int count = 0;
   while (WiFi.status() != WL_CONNECTED) {
-    delay(200);
-    Serial.print(".");
+    delay(1000);
+    Serial.println("Connecting...");
+    if (++count > 6) {
+      Serial.println("WiFi connect fail");
+      WiFi.disconnect();
+      changeNetworkStatus(-1);
+      return;
+    }
   }
+  changeNetworkStatus(1);
   Serial.println("WiFi connected");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());
@@ -50,10 +59,10 @@ void callback(char* topic, unsigned char* payload, unsigned int length) {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("MQTT connection...");
-    String clientId = "ESP8266Client-" + callsign;
+    String clientId = "ESP8266Client-" + String(cwConfig.callsign);
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
-      client.subscribe(cwTopic);
+      client.subscribe(cwConfig.cwTopic.c_str());
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -65,17 +74,21 @@ void reconnect() {
 
 void initNetwork() {
   setupWifi();
-  client.setServer(mqttServer, mqttPort);
+  client.setServer(cwConfig.mqttServer.c_str(), cwConfig.mqttPort);
   client.setBufferSize(5120);
   client.setCallback(callback);
 }
 
 void checkNetwork() {
+  //没有链接wifi直接退出
+  if (WiFi.status() != WL_CONNECTED) {
+    return;
+  }
   if (!client.connected()) {
-    displayNetworkStatus(false);
+    changeNetworkStatus(-2);
     reconnect();
   } else {
-    displayNetworkStatus(true);
+    changeNetworkStatus(2);
   }
   client.loop();
 }
@@ -83,7 +96,7 @@ void checkNetwork() {
 void sendMessage() {
   if (inputs.size() > 0) {
     string message;
-    message = callsign.c_str();
+    message = cwConfig.callsign.c_str();
     message = message + ":";
     //使用迭代器输出list容器中的元素
     for (list<MorseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
@@ -94,7 +107,7 @@ void sendMessage() {
     Serial.print("publish message length:");
     Serial.println(message.length());
     Serial.println(sendMessage);
-    bool publishRet = client.publish(cwTopic, sendMessage);
+    bool publishRet = client.publish(cwConfig.cwTopic.c_str(), sendMessage);
     Serial.print("publish result:");
     Serial.println(publishRet);
     inputs.clear();
@@ -119,7 +132,7 @@ void processMsg(String msg) {
   }
   // 消息处理
   String sender = msg.substring(0, index);
-  if (callsign == sender) {
+  if (String(cwConfig.callsign) == sender) {
     Serial.print("self:");
     Serial.println(sender);
     return;
@@ -139,18 +152,20 @@ void processMsg(String msg) {
   //处理字符
   String inputMorseCode;
   for (list<MorseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
+    displayLine(SHOW_CODE_LINE, String(it->input));
     playMorseInput(&*it);
     char inputChar = (*it).input;
     if (inputChar == ' ') {
       // 连续两个嘀嗒空格就输出一个空格（字母间隔会有一个空格，延时过长也会有一个空格）
+      String displayLetter;
       if (inputMorseCode == "") {
-        displayLine(1, " ");
+        displayLetter = " ";
       } else {
         char letterChar = getLetter(inputMorseCode);
-        String letter = String(letterChar);
-        displayLine(1, letter);
+        displayLetter = String(letterChar);
         inputMorseCode = "";
       }
+      displayLine(SHOW_LETTER_LINE, displayLetter);
     } else {
       inputMorseCode += inputChar;
     }

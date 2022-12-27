@@ -1,11 +1,9 @@
 #ifndef _CW_KEY_H
 #define _CW_KEY_H
 
-
 #include "morse_code.h"
 #include "morse_input.h"
-#include "cw_network.h"
-
+#include "cw_commond.h"
 
 // 防止抖动
 #define KEY_SHAKE_TIME 10
@@ -27,6 +25,8 @@ bool checkSpace = false;
 bool output = false;
 // 输入的编码
 String keyCode = "";
+// 命令(不识别空格)
+String commond = "";
 
 void initKey();
 void checkMorseCode();
@@ -42,46 +42,56 @@ void checkMorseCode() {
   // 如果输入字符检查标识开启，则检查字符
   if (startPress == 0) {
     int cost = millis() - releaseTime;
-    if (cost > KEY_DAH_TIME * 2 && keyCode != "") {
+    if (cost > KEY_DAH_TIME * 1.5 && keyCode != "") {
       char letter = getLetter(keyCode);
-      Serial.println(letter);
+      commond += letter;
       keyCode = "";
       checkSpace = true;
+      if (!isCmdMode(&commond)) {
+        MorseInput input = { ' ', cost, cost };
+        inputs.push_back(input);
+        displayLine(INPUT_LETTER_LINE, String(letter));
+        displayLine(INPUT_CODE_LINE, " ");
+      } else {
+        displayCmd(commond);
+      }
+      //确认字符后更新释放时间
       releaseTime = millis();
-
-      MorseInput input = { ' ', cost, cost };
-      inputs.push_back(input);
-
-      displayLine(2, String(letter));
-      displayLine(3, " ");
     }
   }
 
   // 检查空格
   if (checkSpace) {
     int cost = millis() - releaseTime;
-    if (cost > KEY_DAH_TIME * 2) {
+    if (cost > KEY_DAH_TIME * 3) {
       checkSpace = false;
       // 加上分割用的空格
       keyCode = "";
       output = true;
 
-      MorseInput input = { ' ', KEY_DAH_TIME * 2, cost };
-      inputs.push_back(input);
-
-      displayLine(2, " ");
-      displayLine(3, " ");
+      //命令模式检查空格 但是不输出空格
+      if (!isCmdMode(&commond)) {
+        MorseInput input = { ' ', KEY_DAH_TIME * 3, cost };
+        inputs.push_back(input);
+        displayLine(INPUT_LETTER_LINE, " ");
+        displayLine(INPUT_CODE_LINE, " ");
+        //输入空格后更新释放时间
+        releaseTime = millis();
+      }
     }
   }
 
   // 整段结束检查
   if (output) {
     int cost = millis() - releaseTime;
-    if (cost > KEY_DAH_TIME * 10) {
+    if (cost > KEY_DAH_TIME * 6) {
       output = false;
+      //命令模式清除input
+      if (isCmdMode(&commond)) {
+        inputs.clear();
+      }
       //用于发送信息
-      Serial.println("sendMessage...");
-      sendMessage();
+      processCmd(&commond);
     }
   }
 }
@@ -102,8 +112,8 @@ void checkKeyPress() {
     // 处理异常情况
     if (span < 0) {
       span = 0;
-    } else if (span > KEY_DAH_TIME * 10) {
-      span = KEY_DAH_TIME * 10;
+    } else if (span > KEY_DAH_TIME * 3) {
+      span = KEY_DAH_TIME * 3;
     }
     bee(true);
   }
@@ -116,21 +126,25 @@ void checkKeyRelease() {
     if (cost > KEY_SHAKE_TIME) {
       startPress = 0;
       bee(false);
+      char inputChar;
       if (cost < KEY_DAH_TIME) {
-        keyCode += ".";
-        displayLine(3, ".");
-        MorseInput input = { '.', cost, span };
-        inputs.push_back(input);
+        inputChar = '.';
       } else if (cost >= KEY_DAH_TIME) {
-        keyCode += "-";
-        displayLine(3, "-");
-        MorseInput input = { '-', cost, span };
-        inputs.push_back(input);
+        inputChar = '-';
       }
+      String inputStr = String(inputChar);
+      keyCode += inputStr;
+
+      if (!isCmdMode(&commond)) {
+        MorseInput input = { inputChar, cost, span };
+        inputs.push_back(input);
+        displayLine(INPUT_CODE_LINE, inputStr);
+      }
+
       //避免抖动信号 将触发时间更新
       triggerTime = millis();
-      releaseTime = millis();
     }
+    releaseTime = millis();
   }
 }
 

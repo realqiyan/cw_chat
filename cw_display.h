@@ -22,14 +22,23 @@ struct DisplayConf {
 };
 
 DisplayConf lineConfigArr[] = {
-  { 15, 10, u8g2_font_helvR12_tf, callsign },
-  { 35, 16, u8g2_font_pxplusibmvga8_mf, "" },
+  { 30, 16, u8g2_font_pxplusibmvga8_mf, "" },
+  { 39, 40, u8g2_font_helvR08_tf, "" },
   { 55, 16, u8g2_font_pxplusibmvga8_mf, "" },
   { 64, 40, u8g2_font_helvR08_tf, "" }
 };
 
-//网络状态
-bool networkStatus;
+
+const int SHOW_LETTER_LINE = 0;
+const int SHOW_CODE_LINE = 1;
+const int INPUT_LETTER_LINE = 2;
+const int INPUT_CODE_LINE = 3;
+
+//网络状态 -1未初始化 0开始联网 1已联网 2已连接服务器 -1联网失败 -2连接服务器失败
+int networkStatus = -1;
+
+//小标题：显示IP、时间等
+String subTitle = "©BG5AUN";
 
 //初始化显示器
 void initDisplay();
@@ -37,9 +46,17 @@ void initDisplay();
 //追加显示内容
 void displayLine(int line, String txt);
 
-//显示网络状态
-void displayNetworkStatus(bool success);
+//更新网络状态
+void changeNetworkStatus(int status);
+
+//输出内容
 void displayNetworkStatus();
+
+//清除屏幕显示
+void clearDisplay();
+
+//更新小标题
+void updateSubTitle(String subTitle);
 
 
 void refreshDisplay() {
@@ -48,13 +65,18 @@ void refreshDisplay() {
   displayNetworkStatus();
 
   // title
-  u8g2_for_adafruit_gfx.setFont(lineConfigArr[0].font);         // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  u8g2_for_adafruit_gfx.setCursor(0, lineConfigArr[0].cursor);  // start writing at this position
-  u8g2_for_adafruit_gfx.print(lineConfigArr[0].text);
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_profont17_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  u8g2_for_adafruit_gfx.setCursor(0, 15);                 // start writing at this position
+  u8g2_for_adafruit_gfx.print(cwConfig.callsign);
+
+  //subTitle
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_profont10_tf);
+  u8g2_for_adafruit_gfx.setCursor(72, 13);
+  u8g2_for_adafruit_gfx.print(subTitle);
 
   // line
   String lineText;
-  for (int i = 1; i < MAX_LINE; i++) {
+  for (int i = 0; i < MAX_LINE; i++) {
     //u8g2_for_adafruit_gfx.setFont(getFont(i));
     u8g2_for_adafruit_gfx.setFont(lineConfigArr[i].font);
     u8g2_for_adafruit_gfx.setCursor(0, lineConfigArr[i].cursor);  // start writing at this position
@@ -95,23 +117,52 @@ void displayLine(int line, String txt) {
   refreshDisplay();
 }
 
+void displayCmd(String cmd) {
+  lineConfigArr[INPUT_LETTER_LINE].text = cmd;
+  lineConfigArr[INPUT_CODE_LINE].text = "";
+  refreshDisplay();
+}
+
+void clearDisplay() {
+  for (int i = 0; i < MAX_LINE; i++) {
+    lineConfigArr[i].text = "";
+  }
+  refreshDisplay();
+}
+
 void displayNetworkStatus() {
   //https://github.com/olikraus/u8g2/wiki/fntgrpiconic#open_iconic_www_2x
-  if (networkStatus) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
-    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X048);
-  } else {
+  //网络状态 -1未初始化 0开始联网 1已联网 2已连接服务器 -1联网失败 -2连接服务器失败
+  if (networkStatus == -1) {
     u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X04A);
+  } else if (networkStatus == 0) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X04E);
+  } else if (networkStatus == 1) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X048);
+  } else if (networkStatus == 2) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X053);
+  } else if (networkStatus == -1) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X045);
+  } else if (networkStatus == -2) {
+    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
+    u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X045);
   }
 }
 
 
-void displayNetworkStatus(bool success) {
-  if (success != networkStatus) {
-    networkStatus = success;
+void changeNetworkStatus(int status) {
+  if (status != networkStatus) {
+    networkStatus = status;
     refreshDisplay();
   }
 }
 
+void updateSubTitle(String text) {
+  subTitle = text;  
+}
 #endif
