@@ -5,6 +5,9 @@
 
 using namespace std;
 
+// 嗒的时间
+#define KEY_DAH_TIME 150
+
 struct MorseInput {
   //字符
   char input;

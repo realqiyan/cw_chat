@@ -4,8 +4,6 @@
 #include "morse_input.h"
 #include "cw_config.h"
 
-#define DI_TIME 150
-
 void initBee();
 void bee(bool enable);
 void playMorseCode(String morsecode);
@@ -27,16 +25,16 @@ void playMorseCode(String morsecode) {
   for (int i = 0; i < morsecode.length(); i++) {
     if (morsecode[i] == '.') {
       bee(true);
-      delay(DI_TIME * 0.8);
+      delay(KEY_DAH_TIME / 3);
       bee(false);
     } else if (morsecode[i] == '-') {
       bee(true);
-      delay(DI_TIME * 2);
+      delay(KEY_DAH_TIME);
       bee(false);
     } else if (morsecode[i] == ' ') {
-      delay(DI_TIME);
+      delay(KEY_DAH_TIME);
     }
-    delay(DI_TIME * 0.2);
+    delay(KEY_DAH_TIME * 0.2);
   }
 }
 

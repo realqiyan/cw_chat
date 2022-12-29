@@ -7,8 +7,6 @@
 
 // 防止抖动
 #define KEY_SHAKE_TIME 10
-// 嗒的时间
-#define KEY_DAH_TIME 150
 
 
 // 最近触发时间
@@ -127,9 +125,10 @@ void checkKeyRelease() {
       startPress = 0;
       bee(false);
       char inputChar;
-      if (cost < KEY_DAH_TIME) {
+      // 超过一半就算- 小于一半就算.
+      if (cost < KEY_DAH_TIME / 2) {
         inputChar = '.';
-      } else if (cost >= KEY_DAH_TIME) {
+      } else if (cost >= KEY_DAH_TIME / 2) {
         inputChar = '-';
       }
       String inputStr = String(inputChar);
