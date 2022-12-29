@@ -49,7 +49,7 @@ void checkMorseCode() {
       checkSpace = true;
       if (!isCmdMode(&commond)) {
         MorseInput input = { ' ', cost, cost };
-        inputs.push_back(input);
+        LOCAL_INPUTS.push_back(input);
         displayLine(INPUT_LETTER_LINE, String(letter));
         displayLine(INPUT_CODE_LINE, " ");
       } else {
@@ -72,7 +72,7 @@ void checkMorseCode() {
       //命令模式检查空格 但是不输出空格
       if (!isCmdMode(&commond)) {
         MorseInput input = { ' ', KEY_DAH_TIME * 3, cost };
-        inputs.push_back(input);
+        LOCAL_INPUTS.push_back(input);
         displayLine(INPUT_LETTER_LINE, " ");
         displayLine(INPUT_CODE_LINE, " ");
         //输入空格后更新释放时间
@@ -88,7 +88,7 @@ void checkMorseCode() {
       output = false;
       //命令模式清除input
       if (isCmdMode(&commond)) {
-        inputs.clear();
+        LOCAL_INPUTS.clear();
       }
       //用于发送信息
       processCmd(&commond);
@@ -137,7 +137,7 @@ void checkKeyRelease() {
 
       if (!isCmdMode(&commond)) {
         MorseInput input = { inputChar, cost, span };
-        inputs.push_back(input);
+        LOCAL_INPUTS.push_back(input);
         displayLine(INPUT_CODE_LINE, inputStr);
       }
 

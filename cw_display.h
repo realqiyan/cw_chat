@@ -61,17 +61,21 @@ void updateSubTitle(String subTitle);
 
 void refreshDisplay() {
 
-  display.clearDisplay();  // clear the graphcis buffer
+  // clear the graphcis buffer
+  display.clearDisplay();
+  //网络状态
   displayNetworkStatus();
 
   // title
-  u8g2_for_adafruit_gfx.setFont(u8g2_font_profont17_tf);  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
-  u8g2_for_adafruit_gfx.setCursor(0, 15);                 // start writing at this position
+  // select u8g2 font from here: https://github.com/olikraus/u8g2/wiki/fntlistall
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_profont17_tf);
+  // start writing at this position
+  u8g2_for_adafruit_gfx.setCursor(0, 15);
   u8g2_for_adafruit_gfx.print(cwConfig.callsign);
 
   //subTitle
   u8g2_for_adafruit_gfx.setFont(u8g2_font_profont10_tf);
-  u8g2_for_adafruit_gfx.setCursor(72, 13);
+  u8g2_for_adafruit_gfx.setCursor(68, 13);
   u8g2_for_adafruit_gfx.print(subTitle);
 
   // line
@@ -133,27 +137,21 @@ void clearDisplay() {
 void displayNetworkStatus() {
   //https://github.com/olikraus/u8g2/wiki/fntgrpiconic#open_iconic_www_2x
   //网络状态 -1未初始化 0开始联网 1已联网 2已连接服务器 -1联网失败 -2连接服务器失败
+  u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
   if (networkStatus == -1) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X04A);
   } else if (networkStatus == 0) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X04E);
   } else if (networkStatus == 1) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X048);
   } else if (networkStatus == 2) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X053);
   } else if (networkStatus == -1) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X045);
   } else if (networkStatus == -2) {
-    u8g2_for_adafruit_gfx.setFont(u8g2_font_open_iconic_www_2x_t);
     u8g2_for_adafruit_gfx.drawGlyph(110, 18, 0X045);
   }
 }
-
 
 void changeNetworkStatus(int status) {
   if (status != networkStatus) {
@@ -163,6 +161,6 @@ void changeNetworkStatus(int status) {
 }
 
 void updateSubTitle(String text) {
-  subTitle = text;  
+  subTitle = text;
 }
 #endif

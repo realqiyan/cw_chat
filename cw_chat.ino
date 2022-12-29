@@ -26,7 +26,6 @@
 #include "cw_key.h"
 #include "cw_network.h"
 
-
 void setup() {
   Serial.begin(115200);
   initConfig();

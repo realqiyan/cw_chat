@@ -4,6 +4,7 @@
 #include <EEPROM.h>
 #include <string>
 #include <cstring>
+#include "cw_koch.h"
 
 using namespace std;
 
@@ -15,6 +16,8 @@ void readCwConfig();
 void updateSsid(String ssid);
 void updatePassword(String password);
 void updateCallsign(String callsign);
+void updateLevel(int level);
+
 
 void writeString(int* addr, String str);
 String readString(int* addr);
@@ -34,12 +37,14 @@ struct CwConfig {
   String ssid;
   //WIFI密码
   String password;
+  //级别 1-40
+  int level;
   //配置版本（用于刷新EEPROM存储）
   long version;
 };
 
 CwConfig cwConfig = {
-  1883, "broker-cn.emqx.io", "/cw/bg5aun", "BG5AUN", "***ssid***", "***password***", 1
+  1883, "broker-cn.emqx.io", "/cw/bg5aun", "BG5AUN", "***ssid***", "***password***", 1, 1
 };
 
 //int|int|char[]|int|char[]|int|char[]|int|char[]|int|char[]
@@ -67,6 +72,7 @@ void initConfig() {
 
 void saveCwConfig() {
   Serial.println("save CwConfig");
+  //读取顺序必须和存储顺序一致
   int addr = 0;
   //写入mqttPort
   writeInt(&addr, cwConfig.mqttPort);
@@ -80,6 +86,8 @@ void saveCwConfig() {
   writeString(&addr, cwConfig.ssid);
   //写入password
   writeString(&addr, cwConfig.password);
+  //写入level
+  writeInt(&addr, cwConfig.level);
 
   Serial.print("save ssid:");
   Serial.println(cwConfig.ssid);
@@ -102,23 +110,14 @@ void saveCwConfig() {
 void readCwConfig() {
   Serial.println("read CwConfig");
   int addr = 0;
-  int mqttPort = readInt(&addr);
-  cwConfig.mqttPort = mqttPort;
-  String mqttServer = readString(&addr);
-  cwConfig.mqttServer = mqttServer;
-  String cwTopic = readString(&addr);
-  cwConfig.cwTopic = cwTopic;
-  String callsign = readString(&addr);
-  cwConfig.callsign = callsign;
-  String ssid = readString(&addr);
-  cwConfig.ssid = ssid;
-  String password = readString(&addr);
-  cwConfig.password = password;
-
-  Serial.print("rom ssid:");
-  Serial.println(String(ssid));
-  Serial.print("conf ssid:");
-  Serial.println(cwConfig.ssid);
+  //读取顺序必须和存储顺序一致
+  cwConfig.mqttPort = readInt(&addr);
+  cwConfig.mqttServer = readString(&addr);
+  cwConfig.cwTopic = readString(&addr);
+  cwConfig.callsign = readString(&addr);
+  cwConfig.ssid = readString(&addr);
+  cwConfig.password = readString(&addr);
+  cwConfig.level = readInt(&addr);
 }
 
 void updateSsid(String ssid) {
@@ -131,6 +130,17 @@ void updatePassword(String password) {
 
 void updateCallsign(String callsign) {
   cwConfig.callsign = callsign;
+}
+
+void updateLevel(int level) {
+  int maxLevel = (sizeof(KOCH_TRAINER) / sizeof(KOCH_TRAINER[0]))-1;
+  if (level >= maxLevel) {
+    level = maxLevel;
+  }
+  if (level < 1) {
+    level = 1;
+  }
+  cwConfig.level = level;
 }
 
 void writeString(int* addr, String str) {

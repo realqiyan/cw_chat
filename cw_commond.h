@@ -42,6 +42,7 @@ void exitCmdMode() {
 // /S:***ssid***;     设置wifi名字(通过莫斯码输入，仅支持小写)
 // /P:***password***; 设置wifi密码(通过莫斯码输入，仅支持小写)
 // /C:XXX;            设置呼号(通过莫斯码输入，大写)
+// /L:1;              设置训练级别 1-40
 // /SAVE;             保存更新
 // /RESET;            重置更新
 // /EXIT;             退出命令模式
@@ -59,6 +60,8 @@ void doCmd(String cmd, String param) {
     updatePassword(lParam);
   } else if (String("C") == cmd) {
     updateCallsign(uParam);
+  } else if (String("L") == cmd) {
+    updateLevel(uParam.toInt());
   } else if (String("SAVE") == cmd) {
     saveCwConfig();
     initNetwork();

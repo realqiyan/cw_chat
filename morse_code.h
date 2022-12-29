@@ -12,7 +12,7 @@ struct MorseCode {
   String code;
 };
 
-MorseCode morseCodeArr[] = {
+const MorseCode MORSE_CODE_ARRAY[] = {
   { 'A', ".-" },
   { 'B', "-..." },
   { 'C', "-.-." },
@@ -71,8 +71,8 @@ MorseCode morseCodeArr[] = {
 
 char getLetter(String val) {
   for (int i = 0; i < MORSE_CODE_SIZE; i++) {
-    if (morseCodeArr[i].code == val) {
-      return morseCodeArr[i].letter;
+    if (MORSE_CODE_ARRAY[i].code == val) {
+      return MORSE_CODE_ARRAY[i].letter;
     }
   }
   return '*';
@@ -80,8 +80,8 @@ char getLetter(String val) {
 
 String getMorseCode(char val) {
   for (int i = 0; i < MORSE_CODE_SIZE; i++) {
-    if (morseCodeArr[i].letter == val) {
-      return morseCodeArr[i].code;
+    if (MORSE_CODE_ARRAY[i].letter == val) {
+      return MORSE_CODE_ARRAY[i].code;
     }
   }
   return "*";

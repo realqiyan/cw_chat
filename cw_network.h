@@ -94,12 +94,12 @@ void checkNetwork() {
 }
 
 void sendMessage() {
-  if (inputs.size() > 0) {
+  if (LOCAL_INPUTS.size() > 0) {
     string message;
     message = cwConfig.callsign.c_str();
     message = message + ":";
     //使用迭代器输出list容器中的元素
-    for (list<MorseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
+    for (list<MorseInput>::iterator it = LOCAL_INPUTS.begin(); it != LOCAL_INPUTS.end(); ++it) {
       message = message + (*it).input + "|" + to_string((*it).cost) + "|" + to_string((*it).span) + ";";
     }
     char sendMessage[message.length()];
@@ -110,7 +110,7 @@ void sendMessage() {
     bool publishRet = client.publish(cwConfig.cwTopic.c_str(), sendMessage);
     Serial.print("publish result:");
     Serial.println(publishRet);
-    inputs.clear();
+    LOCAL_INPUTS.clear();
   }
 }
 
@@ -132,6 +132,8 @@ void processMsg(String msg) {
   }
   // 消息处理
   String sender = msg.substring(0, index);
+  // 小标题显示发送者
+  updateSubTitle('#' + sender);
   if (String(cwConfig.callsign) == sender) {
     Serial.print("self:");
     Serial.println(sender);

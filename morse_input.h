@@ -14,7 +14,7 @@ struct MorseInput {
   int span;
 };
 
-list<MorseInput> inputs;
+list<MorseInput> LOCAL_INPUTS;
 
 
 #endif

@@ -2,6 +2,8 @@
 #define _CW_BEE_H
 
 #include "morse_input.h"
+#include "cw_config.h"
+
 #define DI_TIME 150
 
 void initBee();
@@ -15,7 +17,7 @@ void initBee() {
 
 void bee(bool enable) {
   if (enable) {
-    tone(BEE_BUILTIN, 1000);
+    tone(BEE_BUILTIN, 600);
   } else {
     noTone(BEE_BUILTIN);
   }

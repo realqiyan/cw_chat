@@ -3,6 +3,7 @@
 
 
 #include "cw_bee.h"
+#include "cw_koch.h"
 #include "morse_code.h"
 
 void initButton();
@@ -22,10 +23,17 @@ void checkButton() {
     int index;
     char letterChar;
     String morsecode;
+    int level = cwConfig.level;
+
+    //小标题显示训练课程
+    String levelTitle = "level:";
+    levelTitle += cwConfig.level;
+    updateSubTitle(levelTitle);
+
     for (int i = 0; i < count; i++) {
-      //0,25 26个字母  0,35 26个字母+10个数字
-      index = random(0, 25);
-      letterChar = morseCodeArr[index].letter;
+      // A random number between min and max-1. Data type: long.
+      index = random(0, level + 1);
+      letterChar = KOCH_TRAINER[index];
       //获取莫斯码
       morsecode = getMorseCode(letterChar);
       //播放莫斯码
