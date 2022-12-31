@@ -55,19 +55,19 @@ void doCmd(String cmd, String param) {
   String lParam = param;
 
   if (String("S") == cmd) {
-    updateSsid(lParam);
+    cwConfig.updateSsid(lParam.c_str());
   } else if (String("P") == cmd) {
-    updatePassword(lParam);
+    cwConfig.updatePassword(lParam.c_str());
   } else if (String("C") == cmd) {
-    updateCallsign(uParam);
+    cwConfig.updateCallsign(uParam.c_str());
   } else if (String("L") == cmd) {
-    updateLevel(uParam.toInt());
+    cwConfig.updateLevel(uParam.toInt());
   } else if (String("SAVE") == cmd) {
-    saveCwConfig();
+    cwConfig.save();
     initNetwork();
     exitCmdMode();
   } else if (String("RESET") == cmd) {
-    readCwConfig();
+    cwConfig.read();
     exitCmdMode();
   } else if (String("EXIT") == cmd) {
     exitCmdMode();
@@ -95,7 +95,9 @@ void processCmd(String* commond) {
     }
   } else {
     *commond = "";
-    sendMessage();
+    list<MorseInput> inputs = MorseInput::getAllLocalInput();
+    sendMessage(inputs);
+    MorseInput::clearAllLocalInput();
   }
 }
 

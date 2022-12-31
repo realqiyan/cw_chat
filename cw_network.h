@@ -11,13 +11,42 @@
 
 using namespace std;
 
-void sendMessage();
+void initNetwork();
+void processNetwork();
+
+void callback(char* topic, unsigned char* payload, unsigned int length);
+void reconnect();
 void setupWifi();
 void processMsg(String msg);
+void sendMessage();
 const MorseInput convertInput(String inputStr);
 
 WiFiClient espClient;
 PubSubClient client(espClient);
+
+
+
+
+void initNetwork() {
+  setupWifi();
+  client.setServer(cwConfig.mqttServer.c_str(), cwConfig.mqttPort);
+  client.setBufferSize(5120);
+  client.setCallback(callback);
+}
+
+void processNetwork() {
+  //没有链接wifi直接退出
+  if (WiFi.status() != WL_CONNECTED) {
+    return;
+  }
+  if (!client.connected()) {
+    changeNetworkStatus(-2);
+    reconnect();
+  } else {
+    changeNetworkStatus(2);
+  }
+  client.loop();
+}
 
 
 void setupWifi() {
@@ -25,8 +54,8 @@ void setupWifi() {
   delay(20);
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to ");
-  Serial.println(cwConfig.ssid);
-  WiFi.begin(cwConfig.ssid, cwConfig.password);
+  Serial.println(String(cwConfig.ssid.c_str()));
+  WiFi.begin(String(cwConfig.ssid.c_str()), String(cwConfig.password.c_str()));
   int count = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
@@ -59,10 +88,10 @@ void callback(char* topic, unsigned char* payload, unsigned int length) {
 void reconnect() {
   while (!client.connected()) {
     Serial.print("MQTT connection...");
-    String clientId = "ESP8266Client-" + String(cwConfig.callsign);
+    String clientId = "ESP8266Client-" + String(cwConfig.callsign.c_str());
     if (client.connect(clientId.c_str())) {
       Serial.println("connected");
-      client.subscribe(cwConfig.cwTopic.c_str());
+      client.subscribe(cwConfig.topic.c_str());
     } else {
       Serial.print("failed, rc=");
       Serial.print(client.state());
@@ -72,34 +101,14 @@ void reconnect() {
   }
 }
 
-void initNetwork() {
-  setupWifi();
-  client.setServer(cwConfig.mqttServer.c_str(), cwConfig.mqttPort);
-  client.setBufferSize(5120);
-  client.setCallback(callback);
-}
 
-void checkNetwork() {
-  //没有链接wifi直接退出
-  if (WiFi.status() != WL_CONNECTED) {
-    return;
-  }
-  if (!client.connected()) {
-    changeNetworkStatus(-2);
-    reconnect();
-  } else {
-    changeNetworkStatus(2);
-  }
-  client.loop();
-}
-
-void sendMessage() {
-  if (LOCAL_INPUTS.size() > 0) {
+void sendMessage(list<MorseInput> inputs) {
+  if (inputs.size() > 0) {
     string message;
     message = cwConfig.callsign.c_str();
     message = message + ":";
     //使用迭代器输出list容器中的元素
-    for (list<MorseInput>::iterator it = LOCAL_INPUTS.begin(); it != LOCAL_INPUTS.end(); ++it) {
+    for (list<MorseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
       message = message + (*it).input + "|" + to_string((*it).cost) + "|" + to_string((*it).span) + ";";
     }
     char sendMessage[message.length()];
@@ -107,10 +116,9 @@ void sendMessage() {
     Serial.print("publish message length:");
     Serial.println(message.length());
     Serial.println(sendMessage);
-    bool publishRet = client.publish(cwConfig.cwTopic.c_str(), sendMessage);
+    bool publishRet = client.publish(cwConfig.topic.c_str(), sendMessage);
     Serial.print("publish result:");
     Serial.println(publishRet);
-    LOCAL_INPUTS.clear();
   }
 }
 
@@ -134,7 +142,7 @@ void processMsg(String msg) {
   String sender = msg.substring(0, index);
   // 小标题显示发送者
   updateSubTitle('#' + sender);
-  if (String(cwConfig.callsign) == sender) {
+  if (String(cwConfig.callsign.c_str()) == sender) {
     Serial.print("self:");
     Serial.println(sender);
     return;
@@ -163,7 +171,7 @@ void processMsg(String msg) {
       if (inputMorseCode == "") {
         displayLetter = " ";
       } else {
-        char letterChar = getLetter(inputMorseCode);
+        char letterChar = MorseCode::getLetter(inputMorseCode.c_str());
         displayLetter = String(letterChar);
         inputMorseCode = "";
       }

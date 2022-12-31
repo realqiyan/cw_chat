@@ -1,89 +1,21 @@
 #ifndef _MORSE_CODE_H
 #define _MORSE_CODE_H
-#define MORSE_CODE_SIZE 54
 
-char getLetter(String val);
-String getMorseCode(char val);
+#include <string>
+using namespace std;
 
-struct MorseCode {
+class MorseCode {
+private:
+  static MorseCode MORSE_CODE_ARRAY[];
+public:
+  MorseCode(char letter, string code);
   //字符
   char letter;
   //莫尔斯码
-  String code;
+  string code;
+  //根据莫尔斯码获取字符
+  static char getLetter(string val);
+  //根据字符获取莫尔斯码
+  static string getMorseCode(char val);
 };
-
-const MorseCode MORSE_CODE_ARRAY[] = {
-  { 'A', ".-" },
-  { 'B', "-..." },
-  { 'C', "-.-." },
-  { 'D', "-.." },
-  { 'E', "." },
-  { 'F', "..-." },
-  { 'G', "--." },
-  { 'H', "...." },
-  { 'I', ".." },
-  { 'J', ".---" },
-  { 'K', "-.-" },
-  { 'L', ".-.." },
-  { 'M', "--" },
-  { 'N', "-." },
-  { 'O', "---" },
-  { 'P', ".--." },
-  { 'Q', "--.-" },
-  { 'R', ".-." },
-  { 'S', "..." },
-  { 'T', "-" },
-  { 'U', "..-" },
-  { 'V', "...-" },
-  { 'W', ".--" },
-  { 'X', "-..-" },
-  { 'Y', "-.--" },
-  { 'Z', "--.." },
-  { '1', ".----" },
-  { '2', "..---" },
-  { '3', "...--" },
-  { '4', "....-" },
-  { '5', "....." },
-  { '6', "-...." },
-  { '7', "--..." },
-  { '8', "---.." },
-  { '9', "----." },
-  { '0', "-----" },
-  { '.', ".-.-.-" },
-  { ',', "--..--" },
-  { '?', "..--.." },
-  { '\'', ".----." },
-  { '!', "-.-.--" },
-  { '/', "-..-." },
-  { '(', "-.--." },
-  { ')', "-.--.-" },
-  { '&', ".- ..." },
-  { ':', "---..." },
-  { ';', "-.-.-." },
-  { '=', "-...-" },
-  { '+', ".-.-." },
-  { '-', "-....-" },
-  { '_', "..--.-" },
-  { '"', ".-..-." },
-  { '$', "...-..-" },
-  { '@', ".--.-." }
-};
-
-char getLetter(String val) {
-  for (int i = 0; i < MORSE_CODE_SIZE; i++) {
-    if (MORSE_CODE_ARRAY[i].code == val) {
-      return MORSE_CODE_ARRAY[i].letter;
-    }
-  }
-  return '*';
-}
-
-String getMorseCode(char val) {
-  for (int i = 0; i < MORSE_CODE_SIZE; i++) {
-    if (MORSE_CODE_ARRAY[i].letter == val) {
-      return MORSE_CODE_ARRAY[i].code;
-    }
-  }
-  return "*";
-}
 #endif
