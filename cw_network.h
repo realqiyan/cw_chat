@@ -51,7 +51,7 @@ void setupWifi() {
   WiFi.mode(WIFI_STA);
   Serial.print("Connecting to ");
   Serial.println(String(cwConfig.ssid.c_str()));
-  WiFi.begin(String(cwConfig.ssid.c_str()), String(cwConfig.password.c_str()));
+  WiFi.begin(cwConfig.ssid.c_str(), cwConfig.password.c_str());
   int count = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
