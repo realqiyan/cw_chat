@@ -2,6 +2,7 @@
 #define _MORSE_INPUT_H
 
 #include <list>
+#include <string>
 
 using namespace std;
 
@@ -10,6 +11,7 @@ private:
   //本地输入
   static list<MorseInput> LOCAL_INPUTS;
 public:
+  MorseInput(char input, int cost, int span);
   // 嗒的时间
   static const int KEY_DAH_TIME = 150;
   //字符
@@ -24,6 +26,12 @@ public:
   static void clearAllLocalInput();
   //获取所有本地输入
   static list<MorseInput> getAllLocalInput();
+  //转换
+  static MorseInput convertInput(string inputStr);
+  //转换
+  static list<MorseInput> convert(string message);
+  //转换
+  static string convert(list<MorseInput> inputs);
 };
 
 #endif

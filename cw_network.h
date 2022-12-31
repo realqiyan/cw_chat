@@ -24,9 +24,6 @@ const MorseInput convertInput(String inputStr);
 WiFiClient espClient;
 PubSubClient client(espClient);
 
-
-
-
 void initNetwork() {
   setupWifi();
   client.setServer(cwConfig.mqttServer.c_str(), cwConfig.mqttPort);
@@ -48,7 +45,6 @@ void processNetwork() {
   client.loop();
 }
 
-
 void setupWifi() {
   changeNetworkStatus(0);
   delay(20);
@@ -59,18 +55,13 @@ void setupWifi() {
   int count = 0;
   while (WiFi.status() != WL_CONNECTED) {
     delay(1000);
-    Serial.println("Connecting...");
     if (++count > 6) {
-      Serial.println("WiFi connect fail");
       WiFi.disconnect();
       changeNetworkStatus(-1);
       return;
     }
   }
   changeNetworkStatus(1);
-  Serial.println("WiFi connected");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());
 }
 
 void callback(char* topic, unsigned char* payload, unsigned int length) {
@@ -101,36 +92,15 @@ void reconnect() {
   }
 }
 
-
 void sendMessage(list<MorseInput> inputs) {
   if (inputs.size() > 0) {
     string message;
     message = cwConfig.callsign.c_str();
-    message = message + ":";
-    //使用迭代器输出list容器中的元素
-    for (list<MorseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
-      message = message + (*it).input + "|" + to_string((*it).cost) + "|" + to_string((*it).span) + ";";
-    }
+    message = message + ":" + MorseInput::convert(inputs);
     char sendMessage[message.length()];
     strcpy(sendMessage, message.data());
-    Serial.print("publish message length:");
-    Serial.println(message.length());
-    Serial.println(sendMessage);
     bool publishRet = client.publish(cwConfig.topic.c_str(), sendMessage);
-    Serial.print("publish result:");
-    Serial.println(publishRet);
   }
-}
-
-const MorseInput convertInput(String inputStr) {
-  //input|cost|span
-  //-|237|459
-  int lastIdx = inputStr.lastIndexOf("|");
-  char input = inputStr.substring(0, 1)[0];
-  String cost = inputStr.substring(2, lastIdx);
-  String span = inputStr.substring(lastIdx + 1);
-  const MorseInput morseInput = { input, cost.toInt(), span.toInt() };
-  return morseInput;
 }
 
 void processMsg(String msg) {
@@ -143,22 +113,10 @@ void processMsg(String msg) {
   // 小标题显示发送者
   updateSubTitle('#' + sender);
   if (String(cwConfig.callsign.c_str()) == sender) {
-    Serial.print("self:");
-    Serial.println(sender);
     return;
   }
-
-  list<MorseInput> msgList;
   String message = msg.substring(index + 1);
-  while (message.indexOf(";") != -1) {
-    int idx = message.indexOf(";");
-    String inputStr = message.substring(0, idx);
-    //解析输入对象
-    const MorseInput morseInput = convertInput(inputStr);
-    msgList.push_back(morseInput);
-    message = message.substring(idx + 1);
-  }
-
+  list<MorseInput> msgList = MorseInput::convert(message.c_str());
   //处理字符
   String inputMorseCode;
   for (list<MorseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {

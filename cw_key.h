@@ -83,7 +83,7 @@ void checkKeyRelease(int keyVal) {
       keyCode += inputStr;
 
       if (!isCmdMode(&commond)) {
-        MorseInput input = { inputChar, cost, span };
+        MorseInput input(inputChar, cost, span);
         MorseInput::addLocalInput(input);
         displayLine(INPUT_CODE_LINE, inputStr);
       }
@@ -106,7 +106,7 @@ void checkMorseCode() {
       keyCode = "";
       checkSpace = true;
       if (!isCmdMode(&commond)) {
-        MorseInput input = { ' ', cost, cost };
+        MorseInput input(' ', cost, cost);
         MorseInput::addLocalInput(input);
         displayLine(INPUT_LETTER_LINE, String(letter));
         displayLine(INPUT_CODE_LINE, " ");
@@ -129,7 +129,7 @@ void checkMorseCode() {
 
       //命令模式检查空格 但是不输出空格
       if (!isCmdMode(&commond)) {
-        MorseInput input = { ' ', MorseInput::KEY_DAH_TIME * 3, cost };
+        MorseInput input(' ', MorseInput::KEY_DAH_TIME * 3, cost);
         MorseInput::addLocalInput(input);
         displayLine(INPUT_LETTER_LINE, " ");
         displayLine(INPUT_CODE_LINE, " ");

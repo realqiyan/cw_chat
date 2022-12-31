@@ -1,17 +1,9 @@
 #ifndef _CW_COMMOND_H
 #define _CW_COMMOND_H
 
-
 #include "cw_network.h"
 #include "cw_display.h"
 #include "cw_config.h"
-
-// 命令使用/开头 ;结尾 :作为命令和参数的分隔符
-// /S:XXX; 设置wifi名字
-// /P:XXX; 设置wifi密码
-// /C:XXX; 设置呼号
-// /SAVE;  保存更新
-// /RESET; 重置更新
 
 bool cmdMode = false;
 
@@ -100,5 +92,4 @@ void processCmd(String* commond) {
     MorseInput::clearAllLocalInput();
   }
 }
-
 #endif
