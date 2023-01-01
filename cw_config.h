@@ -2,10 +2,25 @@
 #define _CW_CONFIG_H
 #include "config.h"
 
-//引脚配置
+#if defined(ARDUINO_ARCH_ESP32)
+//esp32引脚配置
+const int BEE_BUILTIN = 3;
+const int SCL_BUILTIN = 6;
+const int SDA_BUILTIN = 7;
+const int KEY_BUILTIN = 12;
+const int BTN_BUILTIN = 15;
+#endif
+
+
+#if defined(ARDUINO_ARCH_ESP8266)
+//esp8266引脚配置
 const int BEE_BUILTIN = 0;
-const int BTN_BUILTIN = 12;
+const int SCL_BUILTIN = 5;
+const int SDA_BUILTIN = 4;
 const int KEY_BUILTIN = 13;
+const int BTN_BUILTIN = 12;
+#endif
+
 
 //显示器配置
 const int SHOW_LETTER_LINE = 0;
