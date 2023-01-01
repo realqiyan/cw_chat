@@ -50,8 +50,8 @@ void MorseInput::end(unsigned long releaseTime, MorseInput* preInputParam) {
   this->input = inputChar;
   if (preInputParam != NULL) {
     int currSpan = this->triggerTime - preInputParam->releaseTime;
-    if (currSpan > MorseInput::KEY_DAH_TIME * 10) {
-      currSpan = MorseInput::KEY_DAH_TIME * 10;
+    if (currSpan > MorseInput::KEY_DAH_TIME * 3) {
+      currSpan = MorseInput::KEY_DAH_TIME * 3;
     }
     this->span = currSpan;
   } else {

@@ -16,10 +16,15 @@ struct DisplayConf {
 
 //显示配置
 DisplayConf lineConfigArr[] = {
-  { 18, 20, Roboto_Slab_Regular_12, "" },
-  { 28, 60, Roboto_Slab_Regular_10, "" },
-  { 41, 20, Roboto_Slab_Regular_12, "" },
-  { 51, 60, Roboto_Slab_Regular_10, "" }
+  { 22, 20, Roboto_Slab_Bold_12, "" },
+  { 32, 60, Roboto_Slab_Regular_10, "" },
+  { 42, 20, Roboto_Slab_Bold_12, "" },
+  { 52, 60, Roboto_Slab_Regular_10, "" }
 };
+
+//波形数据
+int waveData[128];
+//显示上边界
+int waveShowLine = 18;
 
 #endif

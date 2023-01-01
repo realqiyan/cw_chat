@@ -143,7 +143,7 @@ void checkInputCode() {
   if (code == " ") {
     //莫斯码输入
     if (!isCmdMode(&commond)) {
-      MorseInput spaceInput(' ', MorseInput::KEY_DAH_TIME * 3, MorseInput::KEY_DAH_TIME * 3);
+      MorseInput spaceInput(' ', MorseInput::KEY_DAH_TIME, MorseInput::KEY_DAH_TIME);
       MorseInput::addLocalInput(spaceInput);
     }
     displayLine(INPUT_LETTER_LINE, " ");
@@ -159,7 +159,7 @@ void checkInputCode() {
     char letter = MorseCode::getLetter(code.c_str());
     commond += letter;
     if (!isCmdMode(&commond)) {
-      MorseInput spaceInput(' ', MorseInput::KEY_DAH_TIME, MorseInput::KEY_DAH_TIME);
+      MorseInput spaceInput(' ', MorseInput::KEY_DAH_TIME / 3, MorseInput::KEY_DAH_TIME / 3);
       MorseInput::addLocalInput(spaceInput);
       displayLine(INPUT_LETTER_LINE, String(letter));
       // 其他字符输入时已经显示 此时仅需追加空格
@@ -222,7 +222,6 @@ void startMorseKoch() {
 }
 
 void refreshDisplay() {
-  // clear
   display.clear();
   display.setTextAlignment(TEXT_ALIGN_LEFT);
   //callsign
@@ -235,6 +234,24 @@ void refreshDisplay() {
   String statusStr;
   statusStr = subTitle + "/" + String(networkStatus);
   display.drawString(128, 3, statusStr);
+
+  //模拟电波
+  //上边界
+  display.drawLine(0, waveShowLine - 2, 127, waveShowLine - 2);
+  display.drawLine(0, waveShowLine - 1, 127, waveShowLine - 1);
+  //下边界
+  display.drawLine(0, waveShowLine + 2, 127, waveShowLine + 2);
+  display.drawLine(0, waveShowLine + 3, 127, waveShowLine + 3);
+  //电波
+  for (int16_t j = 0; j < display.getWidth(); j++) {
+    if (waveData[j] == 0) {
+      display.drawLine(j, waveShowLine, j, waveShowLine);
+      display.drawLine(j, waveShowLine + 1, j, waveShowLine + 1);
+    } else {
+      display.clearPixel(j, waveShowLine);
+      display.clearPixel(j, waveShowLine + 1);
+    }
+  }
 
   // line
   display.setTextAlignment(TEXT_ALIGN_RIGHT);
@@ -429,12 +446,63 @@ void callback(char* topic, unsigned char* payload, unsigned int length) {
   displayMessage(msgList);
 }
 
+
+
+void displayWave(const MorseInput* input) {
+  //一个嘀占2个像素
+  int pixelTime = MorseInput::KEY_DAH_TIME / 6;
+  //转0
+  int countSpan = input->span / pixelTime;
+  //转1
+  int countCost = input->cost / pixelTime;
+  //空格统一按照一个像素处理
+  if (input->input == ' ') {
+    countCost = 0;
+    countSpan = 1;
+  }
+  int newData[countSpan + countCost];
+  for (int i = 0; i < countSpan; i++) {
+    newData[i] = 0;
+  }
+  for (int i = 0; i < countCost; i++) {
+    newData[i + countSpan] = 1;
+  }
+  //上边界
+  display.drawLine(0, waveShowLine - 2, 127, waveShowLine - 2);
+  display.drawLine(0, waveShowLine - 1, 127, waveShowLine - 1);
+  //下边界
+  display.drawLine(0, waveShowLine + 2, 127, waveShowLine + 2);
+  display.drawLine(0, waveShowLine + 3, 127, waveShowLine + 3);
+  for (int i = 0; i < (countSpan + countCost); i++) {
+    for (int16_t j = 0; j < display.getWidth(); j++) {
+      //左移一格 画线
+      if (j < display.getWidth() - 1) {
+        waveData[j] = waveData[j + 1];
+      } else {
+        waveData[j] = newData[i];
+      }
+      if (waveData[j] == 0) {
+        display.drawLine(j, waveShowLine, j, waveShowLine);
+        display.drawLine(j, waveShowLine + 1, j, waveShowLine + 1);
+      } else {
+        display.clearPixel(j, waveShowLine);
+        display.clearPixel(j, waveShowLine + 1);
+      }
+    }
+    display.display();
+  }
+}
+
 void displayMessage(list<MorseInput> msgList) {
   //处理字符
   String inputMorseCode;
   for (list<MorseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
-    displayLine(SHOW_CODE_LINE, String(it->input));
+    //displayLine(SHOW_CODE_LINE, String(it->input));
     playMorseInput(&*it);
+
+    //显示波形displayWave
+    displayWave(&*it);
+
     char inputChar = (*it).input;
     if (inputChar == ' ') {
       // 连续两个嘀嗒空格就输出一个空格（字母间隔会有一个空格，延时过长也会有一个空格）
