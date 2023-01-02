@@ -1,6 +1,11 @@
 #ifndef _DISPLAY_CONF_H
 #define _DISPLAY_CONF_H
 
+#include "fonts.h"
+#include <string>
+
+using namespace std;
+
 struct DisplayConf {
   //定义每一行的起始行
   short cursor;
@@ -11,20 +16,5 @@ struct DisplayConf {
   //默认展示内容
   string text;
 };
-
-#define MAX_LINE 4
-
-//显示配置
-DisplayConf lineConfigArr[] = {
-  { 22, 20, Roboto_Slab_Bold_12, "" },
-  { 32, 60, Roboto_Slab_Regular_10, "" },
-  { 42, 20, Roboto_Slab_Bold_12, "" },
-  { 52, 60, Roboto_Slab_Regular_10, "" }
-};
-
-//波形数据
-int waveData[128];
-//显示上边界
-int waveShowLine = 18;
 
 #endif

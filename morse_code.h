@@ -1,5 +1,5 @@
-#ifndef _MORSE_CODE_H
-#define _MORSE_CODE_H
+#ifndef _CLASS_MORSE_CODE_H
+#define _CLASS_MORSE_CODE_H
 
 #include <string>
 using namespace std;

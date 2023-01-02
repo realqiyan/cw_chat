@@ -1,5 +1,5 @@
-#ifndef _MORSE_INPUT_H
-#define _MORSE_INPUT_H
+#ifndef _CLASS_MORSE_INPUT_H
+#define _CLASS_MORSE_INPUT_H
 
 #include <list>
 #include <string>
@@ -27,17 +27,17 @@ private:
   static void clearAllBufferInput();
 public:
   MorseInput();
-  MorseInput(char input, int cost, int span);
+  MorseInput(int cost, int span);
 
   // 嗒的时间
   static const int KEY_DAH_TIME = 160;
-  //字符
-  char input;
-  //耗时
-  int cost = 0;
   //上次输入间隔
   int span = 0;
+  //耗时
+  int cost = 0;
 
+  //根据耗时计算输入
+  char getInput();
   //开始输入
   void begin(unsigned long triggerTime);
   //输入结束
@@ -57,6 +57,8 @@ public:
   static MorseInput* endInput(unsigned long releaseTime);
   //检查输入
   static string checkInput();
+  //根据耗时计算输入字符
+  static char calculateInput(int cost);
 
   //保存本地输入
   static void addLocalInput(MorseInput input);

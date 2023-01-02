@@ -2,7 +2,7 @@
 
 ## 接线说明
 ```
- CW练习&聊天室 Pro v0.1 by BG5AUN
+ CW练习&聊天室 Pro v0.2 by BG5AUN
 
  初始化请自行修改配置文件cw_config.h(配置呼号、WiFi、消息服务器)
 

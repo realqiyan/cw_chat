@@ -19,8 +19,7 @@ MorseInput* MorseInput::currInput = NULL;
 MorseInput::MorseInput() {
 }
 
-MorseInput::MorseInput(char input, int cost, int span) {
-  this->input = input;
+MorseInput::MorseInput(int cost, int span) {
   this->cost = cost;
   this->span = span;
   //反推时间
@@ -28,6 +27,9 @@ MorseInput::MorseInput(char input, int cost, int span) {
   this->releaseTime = this->triggerTime + cost;
 }
 
+char MorseInput::getInput() {
+  return MorseInput::calculateInput(this->cost);
+}
 //开始输入
 void MorseInput::begin(unsigned long triggerTime) {
   this->triggerTime = triggerTime;
@@ -40,14 +42,6 @@ void MorseInput::end(unsigned long releaseTime) {
 void MorseInput::end(unsigned long releaseTime, MorseInput* preInputParam) {
   this->releaseTime = releaseTime;
   this->cost = this->releaseTime - this->triggerTime;
-  char inputChar;
-  // 超过一半就算- 小于一半就算.
-  if (this->cost < MorseInput::KEY_DAH_TIME / 2) {
-    inputChar = '.';
-  } else {
-    inputChar = '-';
-  }
-  this->input = inputChar;
   if (preInputParam != NULL) {
     int currSpan = this->triggerTime - preInputParam->releaseTime;
     if (currSpan > MorseInput::KEY_DAH_TIME * 3) {
@@ -55,7 +49,8 @@ void MorseInput::end(unsigned long releaseTime, MorseInput* preInputParam) {
     }
     this->span = currSpan;
   } else {
-    this->span = 0;
+    //首次输入自动添加空格
+    this->span = MorseInput::KEY_DAH_TIME;
   }
 }
 
@@ -71,8 +66,7 @@ unsigned long MorseInput::getReleaseTime() {
 //toString
 string MorseInput::toString() {
   string str;
-  str.push_back(input);
-  str = str + "|" + to_string(cost) + "|" + to_string(span) + ";";
+  str = str + to_string(span) + "|" + to_string(cost) + ";";
   return str;
 }
 
@@ -81,6 +75,8 @@ void MorseInput::beginInput(unsigned long triggerTime) {
   if (currInput == NULL) {
     currInput = new MorseInput();
     currInput->begin(millis());
+    // Serial.print("beginInput currInput.triggerTime:");
+    // Serial.println(currInput->triggerTime);
   }
 }
 //输入结束
@@ -89,6 +85,8 @@ MorseInput* MorseInput::endInput(unsigned long releaseTime) {
   if (currInput != NULL) {
     MorseInput* retVal;
     currInput->end(millis(), preInput);
+    // Serial.print("endInput currInput.releaseTime:");
+    // Serial.println(currInput->releaseTime);
     retVal = currInput;
     if (preInput != NULL) {
       delete preInput;
@@ -113,25 +111,45 @@ string MorseInput::checkInput() {
     string code;
     if (cost > MorseInput::KEY_DAH_TIME * 1.5 && bufferInputs.size() > 0) {
       for (list<MorseInput>::iterator it = bufferInputs.begin(); it != bufferInputs.end(); ++it) {
-        code = code + (*it).input;
+        code = code + (*it).getInput();
       }
       clearAllBufferInput();
       checkInputSpace = true;
       return code;
     }
-    if (cost > MorseInput::KEY_DAH_TIME * 6 && bufferInputs.size() == 0) {
+    char inputChar = MorseInput::calculateInput(cost);
+    if (inputChar == '\n' && bufferInputs.size() == 0) {
       //输入结束
-      delete preInput;
-      preInput = NULL;
+      if (preInput != NULL) {
+        delete preInput;
+        preInput = NULL;
+      }
       checkInputSpace = true;
       return "\n";
-    } else if (checkInputSpace && cost > MorseInput::KEY_DAH_TIME * 3 && bufferInputs.size() == 0) {
+    } else if (checkInputSpace && inputChar == ' ' && bufferInputs.size() == 0) {
       //识别空格
       checkInputSpace = false;
       return " ";
     }
   }
   return "";
+}
+
+char MorseInput::calculateInput(int cost) {
+  char inputChar;
+  // 超过一半就算- 小于一半就算.
+  if (cost > MorseInput::KEY_DAH_TIME * 5) {
+    inputChar = '\n';
+  } else if (cost > MorseInput::KEY_DAH_TIME * 2) {
+    inputChar = ' ';
+  } else if (cost > MorseInput::KEY_DAH_TIME / 2) {
+    inputChar = '-';
+  } else if (cost > 0) {
+    inputChar = '.';
+  } else {
+    inputChar = '\0';
+  }
+  return inputChar;
 }
 
 
@@ -157,10 +175,9 @@ MorseInput MorseInput::convertInput(string inputStr) {
   //input|cost|span
   //-|237|459
   int lastIdx = inputStr.find_last_of("|");
-  char input = inputStr[0];
-  string cost = inputStr.substr(2, lastIdx - 2);
-  string span = inputStr.substr(lastIdx + 1);
-  MorseInput morseInput(input, stoi(cost), stoi(span));
+  string span = inputStr.substr(0, lastIdx);
+  string cost = inputStr.substr(lastIdx + 1);
+  MorseInput morseInput(stoi(cost), stoi(span));
   //Serial.println(morseInput.input);
   return morseInput;
 }
@@ -173,10 +190,11 @@ list<MorseInput> MorseInput::convertCode(string code) {
       cost = MorseInput::KEY_DAH_TIME / 3;
     } else if (code[i] == '-') {
       cost = MorseInput::KEY_DAH_TIME;
-    } else if (code[i] == ' ') {
-      cost = MorseInput::KEY_DAH_TIME;
+    } else {
+      continue;
     }
-    MorseInput dida(code[i], cost, MorseInput::KEY_DAH_TIME / 3);
+    int span = MorseInput::KEY_DAH_TIME / (i == 0 ? 1 : 3);
+    MorseInput dida(cost, span);
     msgList.push_back(dida);
   }
   return msgList;
