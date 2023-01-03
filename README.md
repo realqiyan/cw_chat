@@ -31,6 +31,9 @@
     D7(gpio13) - I/O
 ```
 
+esp32-S3接线图（黑色按钮接手键）
+![image](https://user-images.githubusercontent.com/4379546/210372981-e6d0ddc1-2fce-4d82-9214-52f446e37c48.png)
+
 ## 配置说明
 
 可以使用莫尔斯码输入命令配置，联网后可以加入群聊。
