@@ -3,8 +3,8 @@
 #include "HardwareSerial.h"
 
 //本地输入
-list<MorseInput> _LocalInput;
-list<MorseInput> MorseInput::localInputs = _LocalInput;
+list<BaseInput> _LocalInput;
+list<BaseInput> MorseInput::localInputs = _LocalInput;
 
 //字符缓存
 list<MorseInput> _BufferInputs;
@@ -19,7 +19,7 @@ MorseInput* MorseInput::currInput = NULL;
 MorseInput::MorseInput() {
 }
 
-MorseInput::MorseInput(int cost, int span) {
+MorseInput::MorseInput(short cost, short span) {
   this->cost = cost;
   this->span = span;
   //反推时间
@@ -27,9 +27,6 @@ MorseInput::MorseInput(int cost, int span) {
   this->releaseTime = this->triggerTime + cost;
 }
 
-char MorseInput::getInput() {
-  return MorseInput::calculateInput(this->cost);
-}
 //开始输入
 void MorseInput::begin(unsigned long triggerTime) {
   this->triggerTime = triggerTime;
@@ -54,6 +51,12 @@ void MorseInput::end(unsigned long releaseTime, MorseInput* preInputParam) {
   }
 }
 
+//构建BaseInput
+BaseInput MorseInput::buildBaseInput() {
+  BaseInput baseInput(cost, span);
+  return baseInput;
+}
+
 //triggerTime
 unsigned long MorseInput::getTriggerTime() {
   return this->triggerTime;
@@ -61,13 +64,6 @@ unsigned long MorseInput::getTriggerTime() {
 //releaseTime
 unsigned long MorseInput::getReleaseTime() {
   return this->releaseTime;
-}
-
-//toString
-string MorseInput::toString() {
-  string str;
-  str = str + to_string(span) + "|" + to_string(cost) + ";";
-  return str;
 }
 
 //开始输入
@@ -135,31 +131,13 @@ string MorseInput::checkInput() {
   return "";
 }
 
-char MorseInput::calculateInput(int cost) {
-  char inputChar;
-  // 超过一半就算- 小于一半就算.
-  if (cost > MorseInput::KEY_DAH_TIME * 5) {
-    inputChar = '\n';
-  } else if (cost > MorseInput::KEY_DAH_TIME * 2) {
-    inputChar = ' ';
-  } else if (cost > MorseInput::KEY_DAH_TIME / 2) {
-    inputChar = '-';
-  } else if (cost > 0) {
-    inputChar = '.';
-  } else {
-    inputChar = '\0';
-  }
-  return inputChar;
-}
-
-
-void MorseInput::addLocalInput(MorseInput input) {
+void MorseInput::addLocalInput(BaseInput input) {
   localInputs.push_back(input);
 }
 void MorseInput::clearAllLocalInput() {
   localInputs.clear();
 }
-list<MorseInput> MorseInput::getAllLocalInput() {
+list<BaseInput> MorseInput::getAllLocalInput() {
   return localInputs;
 }
 
@@ -171,52 +149,52 @@ void MorseInput::clearAllBufferInput() {
 }
 
 
-MorseInput MorseInput::convertInput(string inputStr) {
+BaseInput MorseInput::convertInput(string inputStr) {
   //input|cost|span
   //-|237|459
   int lastIdx = inputStr.find_last_of("|");
   string span = inputStr.substr(0, lastIdx);
   string cost = inputStr.substr(lastIdx + 1);
-  MorseInput morseInput(stoi(cost), stoi(span));
+  BaseInput morseInput(stoi(cost), stoi(span));
   //Serial.println(morseInput.input);
   return morseInput;
 }
 
-list<MorseInput> MorseInput::convertCode(string code) {
-  list<MorseInput> msgList;
+list<BaseInput> MorseInput::convertCode(string code) {
+  list<BaseInput> msgList;
   for (int i = 0; i < code.length(); i++) {
     int cost;
     if (code[i] == '.') {
-      cost = MorseInput::KEY_DAH_TIME / 3;
+      cost = BaseInput::KEY_DAH_TIME / 3;
     } else if (code[i] == '-') {
-      cost = MorseInput::KEY_DAH_TIME;
+      cost = BaseInput::KEY_DAH_TIME;
     } else {
       continue;
     }
-    int span = MorseInput::KEY_DAH_TIME / (i == 0 ? 1 : 3);
-    MorseInput dida(cost, span);
+    int span = BaseInput::KEY_DAH_TIME / (i == 0 ? 1 : 3);
+    BaseInput dida(cost, span);
     msgList.push_back(dida);
   }
   return msgList;
 }
 
-list<MorseInput> MorseInput::convert(string message) {
-  list<MorseInput> msgList;
+list<BaseInput> MorseInput::convert(string message) {
+  list<BaseInput> msgList;
   while (message.find_first_of(";") != -1) {
     int idx = message.find_first_of(";");
     string inputStr = message.substr(0, idx);
     //解析输入对象
-    MorseInput morseInput = convertInput(inputStr);
+    BaseInput morseInput = convertInput(inputStr);
     msgList.push_back(morseInput);
     message = message.substr(idx + 1);
   }
   return msgList;
 }
 
-string MorseInput::convert(list<MorseInput> inputs) {
+string MorseInput::convert(list<BaseInput> inputs) {
   string message;
   //使用迭代器输出list容器中的元素
-  for (list<MorseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
+  for (list<BaseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
     message = message + (*it).toString();
   }
   return message;

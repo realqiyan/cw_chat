@@ -5,6 +5,7 @@
 #include "SSD1306Wire.h"
 #include "display_conf.h"
 #include "config.h"
+#include "base_input.h"
 #include "morse_input.h"
 #include "morse_code.h"
 #include "morse_koch.h"
@@ -23,32 +24,34 @@ using namespace std;
 class Controller {
 private:
 
-  //波形显示上边界
-  const int WAVE_SHOW_LINE = 18;
-  //波形数据
-  int waveData[128];
+
   //是否命令模式
   bool cmdMode = false;
   //存储的命令
   String commond;
 
   //状态 -1未初始化 0开始联网 1已联网 2已连接服务器 -1联网失败 -2连接服务器失败
-  int status = -1;
+  short status = -1;
   //小标题：显示IP、时间等
   String subTitle = "©BG5AUN";
 
   SSD1306Wire* display;
   Config* config;
   PubSubClient* pubSubClient;
-  int beePin;
-  int keyPin;
-  int btnPin;
+  short beePin;
+  short keyPin;
+  short btnPin;
+
+  //波形显示上边界
+  const short SHOW_WAVE_LINE = 18;
+  //波形数据 0/1代表按下或放开对于的像素位
+  short showWaveData[128];
 
   //显示配置
   DisplayConf lineConfigs[4] = {
-    { 22, 20, Roboto_Slab_Bold_12, "" },
+    { 22, 20, Roboto_Slab_Bold_13, "" },
     { 32, 60, Roboto_Slab_Regular_10, "" },
-    { 42, 20, Roboto_Slab_Bold_12, "" },
+    { 42, 20, Roboto_Slab_Bold_13, "" },
     { 52, 60, Roboto_Slab_Regular_10, "" }
   };
 
@@ -64,13 +67,13 @@ private:
 public:
 
   //显示器配置
-  static const int SHOW_LETTER_LINE = 0;
-  static const int SHOW_CODE_LINE = 1;
-  static const int INPUT_LETTER_LINE = 2;
-  static const int INPUT_CODE_LINE = 3;
+  static const short SHOW_LETTER_LINE = 0;
+  static const short SHOW_CODE_LINE = 1;
+  static const short INPUT_LETTER_LINE = 2;
+  static const short INPUT_CODE_LINE = 3;
 
 
-  Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSubClient, int beePin, int keyPin, int btnPin);
+  Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSubClient, short beePin, short keyPin, short btnPin);
   ~Controller();
 
   //初始化
@@ -86,9 +89,9 @@ public:
   //更新显示内容
   void updateLine(int line, String txt);
   //输出波形
-  void outputWave(const MorseInput* input);
+  void outputWave(const BaseInput* input);
   //输出信息
-  void outputMessage(list<MorseInput> inputs);
+  void outputMessage(list<BaseInput> inputs);
   //更新网络状态
   void changeStatus(int status);
   //更新小标题
@@ -96,9 +99,9 @@ public:
   //喇叭发声
   void play(bool enable);
   //播放实际输入
-  void play(const MorseInput* morseInput);
+  void play(const BaseInput* morseInput);
   //发送消息
-  void sendMessage(list<MorseInput> inputs);
+  void sendMessage(list<BaseInput> inputs);
   //训练
   void startTraining();
 

@@ -8,7 +8,7 @@ int preKeyVal = -1;
 unsigned long preChangeTime = 0;
 
 
-Controller::Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSubClient, int beePin, int keyPin, int btnPin) {
+Controller::Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSubClient, short beePin, short keyPin, short btnPin) {
   this->config = config;
   this->beePin = beePin;
   this->keyPin = keyPin;
@@ -92,7 +92,7 @@ void Controller::loop() {
         MorseInput saveVal = *retVal;
         if (!isCmdMode()) {
           //莫斯码输入
-          MorseInput::addLocalInput(saveVal);
+          MorseInput::addLocalInput(saveVal.buildBaseInput());
           displayLine(Controller::INPUT_CODE_LINE, String(retVal->getInput()));
         }
       }
@@ -143,19 +143,19 @@ void Controller::refresh() {
 
   //模拟电波
   //上边界
-  display->drawLine(0, WAVE_SHOW_LINE - 2, 127, WAVE_SHOW_LINE - 2);
-  display->drawLine(0, WAVE_SHOW_LINE - 1, 127, WAVE_SHOW_LINE - 1);
+  display->drawLine(0, SHOW_WAVE_LINE - 2, 127, SHOW_WAVE_LINE - 2);
+  display->drawLine(0, SHOW_WAVE_LINE - 1, 127, SHOW_WAVE_LINE - 1);
   //下边界
-  display->drawLine(0, WAVE_SHOW_LINE + 2, 127, WAVE_SHOW_LINE + 2);
-  display->drawLine(0, WAVE_SHOW_LINE + 3, 127, WAVE_SHOW_LINE + 3);
+  display->drawLine(0, SHOW_WAVE_LINE + 2, 127, SHOW_WAVE_LINE + 2);
+  display->drawLine(0, SHOW_WAVE_LINE + 3, 127, SHOW_WAVE_LINE + 3);
   //电波
   for (int16_t j = 0; j < display->getWidth(); j++) {
-    if (waveData[j] == 0) {
-      display->drawLine(j, WAVE_SHOW_LINE, j, WAVE_SHOW_LINE);
-      display->drawLine(j, WAVE_SHOW_LINE + 1, j, WAVE_SHOW_LINE + 1);
+    if (showWaveData[j] == 0) {
+      display->drawLine(j, SHOW_WAVE_LINE, j, SHOW_WAVE_LINE);
+      display->drawLine(j, SHOW_WAVE_LINE + 1, j, SHOW_WAVE_LINE + 1);
     } else {
-      display->clearPixel(j, WAVE_SHOW_LINE);
-      display->clearPixel(j, WAVE_SHOW_LINE + 1);
+      display->clearPixel(j, SHOW_WAVE_LINE);
+      display->clearPixel(j, SHOW_WAVE_LINE + 1);
     }
   }
   // line
@@ -219,14 +219,14 @@ void Controller::play(bool enable) {
   }
 }
 //播放实际输入
-void Controller::play(const MorseInput* morseInput) {
+void Controller::play(const BaseInput* morseInput) {
   delay(morseInput->span);
   play(true);
   delay(morseInput->cost);
   play(false);
 }
 
-void Controller::outputWave(const MorseInput* input) {
+void Controller::outputWave(const BaseInput* input) {
   //一个嘀占2个像素
   int pixelTime = MorseInput::KEY_DAH_TIME / 6;
   //转0 不足一个像素算一个像素
@@ -243,41 +243,42 @@ void Controller::outputWave(const MorseInput* input) {
     newData[i + countSpan] = 1;
   }
   //上边界
-  //display->drawLine(0, WAVE_SHOW_LINE - 2, 127, WAVE_SHOW_LINE - 2);
-  display->drawLine(0, WAVE_SHOW_LINE - 1, 127, WAVE_SHOW_LINE - 1);
+  display->drawLine(0, SHOW_WAVE_LINE - 2, 127, SHOW_WAVE_LINE - 2);
+  display->drawLine(0, SHOW_WAVE_LINE - 1, 127, SHOW_WAVE_LINE - 1);
   //下边界
-  display->drawLine(0, WAVE_SHOW_LINE + 2, 127, WAVE_SHOW_LINE + 2);
-  //display->drawLine(0, WAVE_SHOW_LINE + 3, 127, WAVE_SHOW_LINE + 3);
+  display->drawLine(0, SHOW_WAVE_LINE + 2, 127, SHOW_WAVE_LINE + 2);
+  display->drawLine(0, SHOW_WAVE_LINE + 3, 127, SHOW_WAVE_LINE + 3);
   for (int i = 0; i < (countSpan + countCost); i++) {
     for (int16_t j = 0; j < display->getWidth(); j++) {
       //左移一格 画线
       if (j < display->getWidth() - 1) {
-        waveData[j] = waveData[j + 1];
+        showWaveData[j] = showWaveData[j + 1];
       } else {
-        waveData[j] = newData[i];
+        showWaveData[j] = newData[i];
       }
-      if (waveData[j] == 0) {
-        display->drawLine(j, WAVE_SHOW_LINE, j, WAVE_SHOW_LINE);
-        display->drawLine(j, WAVE_SHOW_LINE + 1, j, WAVE_SHOW_LINE + 1);
+      if (showWaveData[j] == 0) {
+        display->drawLine(j, SHOW_WAVE_LINE, j, SHOW_WAVE_LINE);
+        display->drawLine(j, SHOW_WAVE_LINE + 1, j, SHOW_WAVE_LINE + 1);
       } else {
-        display->clearPixel(j, WAVE_SHOW_LINE);
-        display->clearPixel(j, WAVE_SHOW_LINE + 1);
+        display->clearPixel(j, SHOW_WAVE_LINE);
+        display->clearPixel(j, SHOW_WAVE_LINE + 1);
       }
     }
-    if (i % 2 == 0) {
+    if (i % 3 == 0) {
       display->display();
     }
   }
+  display->display();
 }
 
-void Controller::outputMessage(list<MorseInput> msgList) {
+void Controller::outputMessage(list<BaseInput> msgList) {
 
   Serial.print("displayMessage:");
   Serial.println(MorseInput::convert(msgList).c_str());
 
   //处理字符
   String inputMorseCode;
-  for (list<MorseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
+  for (list<BaseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
     //displayLine(SHOW_CODE_LINE, String(it->getInput()));
     play(&*it);
     //显示波形displayWave
@@ -305,7 +306,7 @@ void Controller::outputMessage(list<MorseInput> msgList) {
   displayLine(SHOW_LETTER_LINE, " ");
 }
 
-void Controller::sendMessage(list<MorseInput> inputs) {
+void Controller::sendMessage(list<BaseInput> inputs) {
   if (inputs.size() > 0) {
     string message;
     message = config->callsign.c_str();
@@ -334,7 +335,7 @@ void Controller::startTraining() {
     letterChar = MorseKoch::getRandomCharByLevel(level);
     //获取莫斯码
     string code = MorseCode::getMorseCode(letterChar);
-    list<MorseInput> inputs = MorseInput::convertCode(code);
+    list<BaseInput> inputs = MorseInput::convertCode(code);
     outputMessage(inputs);
     delay(50);
   }
@@ -361,7 +362,7 @@ void Controller::callback(char* topic, unsigned char* payload, unsigned int leng
     return;
   }
   String message = msg.substring(index + 1);
-  list<MorseInput> msgList = MorseInput::convert(message.c_str());
+  list<BaseInput> msgList = MorseInput::convert(message.c_str());
   outputMessage(msgList);
 }
 
@@ -402,7 +403,7 @@ void Controller::parseCmd() {
     }
   } else {
     commond = "";
-    list<MorseInput> inputs = MorseInput::getAllLocalInput();
+    list<BaseInput> inputs = MorseInput::getAllLocalInput();
     sendMessage(inputs);
     MorseInput::clearAllLocalInput();
   }

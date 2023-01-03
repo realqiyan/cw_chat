@@ -1,12 +1,13 @@
 #ifndef _CLASS_MORSE_INPUT_H
 #define _CLASS_MORSE_INPUT_H
 
+#include "base_input.h"
 #include <list>
 #include <string>
 
 using namespace std;
 
-class MorseInput {
+class MorseInput : public BaseInput {
 private:
   //上一次输入
   static MorseInput* preInput;
@@ -15,7 +16,7 @@ private:
   //检查输入空格
   static bool checkInputSpace;
   //本地输入
-  static list<MorseInput> localInputs;
+  static list<BaseInput> localInputs;
   //buffer
   static list<MorseInput> bufferInputs;
   //触发时间
@@ -27,25 +28,17 @@ private:
   static void clearAllBufferInput();
 public:
   MorseInput();
-  MorseInput(int cost, int span);
+  MorseInput(short cost, short span);
 
-  // 嗒的时间
-  static const int KEY_DAH_TIME = 160;
-  //上次输入间隔
-  int span = 0;
-  //耗时
-  int cost = 0;
-
-  //根据耗时计算输入
-  char getInput();
   //开始输入
   void begin(unsigned long triggerTime);
   //输入结束
   void end(unsigned long releaseTime);
   //输入结束
   void end(unsigned long releaseTime, MorseInput* preInput);
-  //toString
-  string toString();
+  //构建BaseInput
+  BaseInput buildBaseInput();
+
   //triggerTime
   unsigned long getTriggerTime();
   //releaseTime
@@ -57,24 +50,22 @@ public:
   static MorseInput* endInput(unsigned long releaseTime);
   //检查输入
   static string checkInput();
-  //根据耗时计算输入字符
-  static char calculateInput(int cost);
 
   //保存本地输入
-  static void addLocalInput(MorseInput input);
+  static void addLocalInput(BaseInput input);
   //清空本地输入
   static void clearAllLocalInput();
   //获取所有本地输入
-  static list<MorseInput> getAllLocalInput();
+  static list<BaseInput> getAllLocalInput();
 
   //转换单个输入
-  static MorseInput convertInput(string inputStr);
+  static BaseInput convertInput(string inputStr);
   //转换-.--这类字符串
-  static list<MorseInput> convertCode(string code);
+  static list<BaseInput> convertCode(string code);
   //转换发送的消息
-  static list<MorseInput> convert(string message);
+  static list<BaseInput> convert(string message);
   //转换输入为消息
-  static string convert(list<MorseInput> inputs);
+  static string convert(list<BaseInput> inputs);
 };
 
 #endif
