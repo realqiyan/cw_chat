@@ -105,7 +105,8 @@ string MorseInput::checkInput() {
     int cost = millis() - preInput->getReleaseTime();
     //识别字符
     string code;
-    if (cost > MorseInput::KEY_DAH_TIME * 1.5 && bufferInputs.size() > 0) {
+    // 等待时间超过一个划还没有输入则开始识别
+    if (cost > MorseInput::KEY_DAH_TIME && bufferInputs.size() > 0) {
       for (list<MorseInput>::iterator it = bufferInputs.begin(); it != bufferInputs.end(); ++it) {
         code = code + (*it).getInput();
       }
