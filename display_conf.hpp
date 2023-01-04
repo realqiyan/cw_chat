@@ -6,7 +6,8 @@
 
 using namespace std;
 
-struct DisplayConf {
+class DisplayConf {
+public:
   //定义每一行的起始行
   short cursor;
   //定义每一行最大字数

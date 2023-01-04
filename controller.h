@@ -3,7 +3,8 @@
 
 #include <PubSubClient.h>
 #include "SSD1306Wire.h"
-#include "display_conf.h"
+#include "wave_conf.hpp"
+#include "display_conf.hpp"
 #include "config.h"
 #include "base_input.h"
 #include "morse_input.h"
@@ -18,6 +19,9 @@
 #if defined(ARDUINO_ARCH_ESP8266)
 #include <ESP8266WiFi.h>  //esp8266
 #endif
+
+#define MAX_LETTER_LINE 2
+#define MAX_WAVE_LINE 2
 
 using namespace std;
 
@@ -42,18 +46,10 @@ private:
   short keyPin;
   short btnPin;
 
-  //波形显示上边界
-  const short SHOW_WAVE_LINE = 18;
-  //波形数据 0/1代表按下或放开对于的像素位
-  short showWaveData[128];
-
-  //显示配置
-  DisplayConf lineConfigs[4] = {
-    { 22, 20, Roboto_Slab_Bold_13, "" },
-    { 32, 60, Roboto_Slab_Regular_10, "" },
-    { 42, 20, Roboto_Slab_Bold_13, "" },
-    { 52, 60, Roboto_Slab_Regular_10, "" }
-  };
+  //morse code显示配置
+  WaveConf* waveConfigs[MAX_WAVE_LINE];
+  //字符显示配置
+  DisplayConf lineConfigs[MAX_LETTER_LINE];
 
   //是否处于命令模式
   bool isCmdMode();
@@ -68,10 +64,9 @@ public:
 
   //显示器配置
   static const short SHOW_LETTER_LINE = 0;
-  static const short SHOW_CODE_LINE = 1;
-  static const short INPUT_LETTER_LINE = 2;
-  static const short INPUT_CODE_LINE = 3;
-
+  static const short INPUT_LETTER_LINE = 1;
+  static const short SHOW_CODE_LINE = 0;
+  static const short INPUT_CODE_LINE = 1;
 
   Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSubClient, short beePin, short keyPin, short btnPin);
   ~Controller();
@@ -89,7 +84,7 @@ public:
   //更新显示内容
   void updateLine(int line, String txt);
   //输出波形
-  void outputWave(const BaseInput* input);
+  void outputWave(int line, const BaseInput* input);
   //输出信息
   void outputMessage(list<BaseInput> inputs);
   //更新网络状态

@@ -31,7 +31,7 @@ public:
       inputChar = '\n';
     } else if (cost > KEY_DAH_TIME * 2) {
       inputChar = ' ';
-    } else if (cost > KEY_DAH_TIME / 2) {
+    } else if (cost > KEY_DAH_TIME * 0.75) {
       inputChar = '-';
     } else if (cost > 0) {
       inputChar = '.';

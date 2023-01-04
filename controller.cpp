@@ -1,6 +1,5 @@
 #include "controller.h"
 
-#define MAX_LINE 4
 #define KEY_SHAKE_TIME 10
 
 // 防止输入信号抖动
@@ -15,8 +14,16 @@ Controller::Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSu
   this->btnPin = btnPin;
   this->display = display;
   this->pubSubClient = pubSubClient;
+  //字符显示配置
+  this->lineConfigs[0] = { 23, 20, Roboto_Slab_Bold_13, "" };
+  this->lineConfigs[1] = { 47, 20, Roboto_Slab_Bold_13, "" };
+  //波形显示配置
+  int displayWidth = display->getWidth();
+  this->waveConfigs[0] = new WaveConf(20, displayWidth, '0');
+  this->waveConfigs[1] = new WaveConf(46, displayWidth, '1');
 }
 Controller::~Controller() {
+  delete[] waveConfigs;
 }
 
 bool Controller::init() {
@@ -92,8 +99,9 @@ void Controller::loop() {
         MorseInput saveVal = *retVal;
         if (!isCmdMode()) {
           //莫斯码输入
-          MorseInput::addLocalInput(saveVal.buildBaseInput());
-          displayLine(Controller::INPUT_CODE_LINE, String(retVal->getInput()));
+          BaseInput baseInput = saveVal.buildBaseInput();
+          MorseInput::addLocalInput(baseInput);
+          outputWave(INPUT_CODE_LINE, &baseInput);
         }
       }
     }
@@ -103,7 +111,6 @@ void Controller::loop() {
   if (code != "") {
     if (code == " ") {
       displayLine(INPUT_LETTER_LINE, " ");
-      displayLine(INPUT_CODE_LINE, " ");
     } else if (code == "\n") {
       //命令模式清除input
       if (isCmdMode()) {
@@ -117,10 +124,8 @@ void Controller::loop() {
       if (!isCmdMode()) {
         displayLine(Controller::INPUT_LETTER_LINE, String(letter));
         // 其他字符输入时已经显示 此时仅需追加空格
-        displayLine(Controller::INPUT_CODE_LINE, " ");
       } else {
         updateLine(Controller::INPUT_LETTER_LINE, commond);
-        updateLine(Controller::INPUT_CODE_LINE, "");
         refresh();
       }
     }
@@ -142,26 +147,35 @@ void Controller::refresh() {
   display->drawString(128, 3, statusStr);
 
   //模拟电波
-  //上边界
-  display->drawLine(0, SHOW_WAVE_LINE - 2, 127, SHOW_WAVE_LINE - 2);
-  display->drawLine(0, SHOW_WAVE_LINE - 1, 127, SHOW_WAVE_LINE - 1);
-  //下边界
-  display->drawLine(0, SHOW_WAVE_LINE + 2, 127, SHOW_WAVE_LINE + 2);
-  display->drawLine(0, SHOW_WAVE_LINE + 3, 127, SHOW_WAVE_LINE + 3);
-  //电波
-  for (int16_t j = 0; j < display->getWidth(); j++) {
-    if (showWaveData[j] == 0) {
-      display->drawLine(j, SHOW_WAVE_LINE, j, SHOW_WAVE_LINE);
-      display->drawLine(j, SHOW_WAVE_LINE + 1, j, SHOW_WAVE_LINE + 1);
-    } else {
-      display->clearPixel(j, SHOW_WAVE_LINE);
-      display->clearPixel(j, SHOW_WAVE_LINE + 1);
+
+  WaveConf* waveConfig;
+  for (int i = 0; i < MAX_WAVE_LINE; i++) {
+    waveConfig = waveConfigs[i];
+    short currCursor = waveConfig->cursor;
+    if (waveConfig->type == '0') {
+      //上边界
+      display->drawLine(0, currCursor - 2, 127, currCursor - 2);
+      display->drawLine(0, currCursor - 1, 127, currCursor - 1);
+      //下边界
+      display->drawLine(0, currCursor + 2, 127, currCursor + 2);
+      display->drawLine(0, currCursor + 3, 127, currCursor + 3);
+    }
+    //电波
+    for (int16_t j = 0; j < display->getWidth(); j++) {
+      if (waveConfig->data[j] == waveConfig->type) {
+        display->drawLine(j, currCursor, j, currCursor);
+        display->drawLine(j, currCursor + 1, j, currCursor + 1);
+      } else {
+        display->clearPixel(j, currCursor);
+        display->clearPixel(j, currCursor + 1);
+      }
     }
   }
+
   // line
   display->setTextAlignment(TEXT_ALIGN_RIGHT);
   String lineText;
-  for (int i = 0; i < MAX_LINE; i++) {
+  for (int i = 0; i < MAX_LETTER_LINE; i++) {
     display->setFont(lineConfigs[i].font);
     lineText = String(lineConfigs[i].text.c_str());
     if (lineText.length() > lineConfigs[i].maxSize) {
@@ -174,7 +188,7 @@ void Controller::refresh() {
 
 
 void Controller::displayLine(int line, String txt) {
-  if (line > MAX_LINE) {
+  if (line > MAX_LETTER_LINE) {
     return;
   }
   lineConfigs[line].text = (String(lineConfigs[line].text.c_str()) + txt).c_str();
@@ -182,14 +196,14 @@ void Controller::displayLine(int line, String txt) {
 }
 
 void Controller::updateLine(int line, String txt) {
-  if (line > MAX_LINE) {
+  if (line > MAX_LETTER_LINE) {
     return;
   }
   lineConfigs[line].text = txt.c_str();
 }
 
 void Controller::clear() {
-  for (int i = 0; i < MAX_LINE; i++) {
+  for (int i = 0; i < MAX_LETTER_LINE; i++) {
     lineConfigs[i].text = "";
   }
   refresh();
@@ -197,8 +211,10 @@ void Controller::clear() {
 
 //更新网络状态
 void Controller::changeStatus(int status) {
-  this->status = status;
-  refresh();
+  if (this->status != status) {
+    this->status = status;
+    refresh();
+  }
 }
 //更新小标题
 void Controller::changeSubTitle(String subTitle) {
@@ -226,7 +242,7 @@ void Controller::play(const BaseInput* morseInput) {
   play(false);
 }
 
-void Controller::outputWave(const BaseInput* input) {
+void Controller::outputWave(int line, const BaseInput* input) {
   //一个嘀占2个像素
   int pixelTime = MorseInput::KEY_DAH_TIME / 6;
   //转0 不足一个像素算一个像素
@@ -235,33 +251,29 @@ void Controller::outputWave(const BaseInput* input) {
   //转1 不足一个像素算一个像素
   int countCost = input->cost / pixelTime;
   countCost = countCost == 0 ? 1 : countCost;
-  int newData[countSpan + countCost];
+  char newData[countSpan + countCost];
   for (int i = 0; i < countSpan; i++) {
-    newData[i] = 0;
+    newData[i] = '0';
   }
   for (int i = 0; i < countCost; i++) {
-    newData[i + countSpan] = 1;
+    newData[i + countSpan] = '1';
   }
-  //上边界
-  display->drawLine(0, SHOW_WAVE_LINE - 2, 127, SHOW_WAVE_LINE - 2);
-  display->drawLine(0, SHOW_WAVE_LINE - 1, 127, SHOW_WAVE_LINE - 1);
-  //下边界
-  display->drawLine(0, SHOW_WAVE_LINE + 2, 127, SHOW_WAVE_LINE + 2);
-  display->drawLine(0, SHOW_WAVE_LINE + 3, 127, SHOW_WAVE_LINE + 3);
+  WaveConf* waveConfig = waveConfigs[line];
+  short displayCursor = waveConfig->cursor;
   for (int i = 0; i < (countSpan + countCost); i++) {
     for (int16_t j = 0; j < display->getWidth(); j++) {
       //左移一格 画线
       if (j < display->getWidth() - 1) {
-        showWaveData[j] = showWaveData[j + 1];
+        waveConfig->data[j] = waveConfig->data[j + 1];
       } else {
-        showWaveData[j] = newData[i];
+        waveConfig->data[j] = newData[i];
       }
-      if (showWaveData[j] == 0) {
-        display->drawLine(j, SHOW_WAVE_LINE, j, SHOW_WAVE_LINE);
-        display->drawLine(j, SHOW_WAVE_LINE + 1, j, SHOW_WAVE_LINE + 1);
+      if (waveConfig->data[j] == waveConfig->type) {
+        display->drawLine(j, displayCursor, j, displayCursor);
+        display->drawLine(j, displayCursor + 1, j, displayCursor + 1);
       } else {
-        display->clearPixel(j, SHOW_WAVE_LINE);
-        display->clearPixel(j, SHOW_WAVE_LINE + 1);
+        display->clearPixel(j, displayCursor);
+        display->clearPixel(j, displayCursor + 1);
       }
     }
     if (i % 3 == 0) {
@@ -282,7 +294,7 @@ void Controller::outputMessage(list<BaseInput> msgList) {
     //displayLine(SHOW_CODE_LINE, String(it->getInput()));
     play(&*it);
     //显示波形displayWave
-    outputWave(&*it);
+    outputWave(SHOW_CODE_LINE, &*it);
     char inputChar = it->getInput();
     int inputSpan = it->span;
     if (inputSpan > MorseInput::KEY_DAH_TIME * 1.5) {
