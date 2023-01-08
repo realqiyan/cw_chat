@@ -1,5 +1,10 @@
 # 基于Arduino的cw练习工具
 
+## 依赖库
+* PubSubClient
+* ESP8266 and ESP32 OLED driver for SSD1306 displays
+* Adafruit MQTT Library
+
 ## 接线说明
 ```
  CW练习&聊天室 Pro v0.2 by BG5AUN
