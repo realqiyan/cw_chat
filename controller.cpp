@@ -1,5 +1,5 @@
 #include "controller.h"
-
+//#define DEBUG_LOG true
 #define KEY_SHAKE_TIME 10
 
 // 防止输入信号抖动
@@ -23,7 +23,10 @@ Controller::Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSu
   this->waveConfigs[1] = new WaveConf(46, displayWidth, '1');
 }
 Controller::~Controller() {
-  delete[] waveConfigs;
+  for (int i = 0; i < MAX_WAVE_LINE; i++) {
+    delete this->waveConfigs[i];
+    this->waveConfigs[i] = NULL;
+  }
 }
 
 bool Controller::init() {
@@ -101,6 +104,10 @@ void Controller::loop() {
           //莫斯码输入
           BaseInput baseInput = saveVal.buildBaseInput();
           MorseInput::addLocalInput(baseInput);
+#ifdef DEBUG_LOG
+          Serial.print("allLocalInput size:");
+          Serial.println(MorseInput::getAllLocalInput().size());
+#endif
           outputWave(INPUT_CODE_LINE, &baseInput);
         }
       }
@@ -284,10 +291,10 @@ void Controller::outputWave(int line, const BaseInput* input) {
 }
 
 void Controller::outputMessage(list<BaseInput> msgList) {
-
+#ifdef DEBUG_LOG
   Serial.print("displayMessage:");
   Serial.println(MorseInput::convert(msgList).c_str());
-
+#endif
   //处理字符
   String inputMorseCode;
   for (list<BaseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
@@ -354,14 +361,18 @@ void Controller::startTraining() {
 }
 
 void Controller::callback(char* topic, unsigned char* payload, unsigned int length) {
+#ifdef DEBUG_LOG
   Serial.print("Message arrived [");
   Serial.print(topic);
   Serial.print("] ");
+#endif
   String msg;
   for (int i = 0; i < length; i++) {
     msg += (char)payload[i];
   }
+#ifdef DEBUG_LOG
   Serial.println(msg);
+#endif
   int index = msg.indexOf(":");
   if (index < 0) {
     return;

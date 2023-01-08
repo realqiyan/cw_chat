@@ -24,7 +24,10 @@ public:
     }
   }
   ~WaveConf() {
-    delete[] this->data;
+    if (data != NULL) {
+      delete[] this->data;
+      this->data = NULL;
+    }
   }
 };
 
