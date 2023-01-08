@@ -2,6 +2,9 @@
 //#define DEBUG_LOG true
 #define KEY_SHAKE_TIME 10
 
+//平均64个字符 一个字符平均按4个点划算
+#define MAX_SEND_INPUT 64 * 4
+
 // 防止输入信号抖动
 int preKeyVal = -1;
 unsigned long preChangeTime = 0;
@@ -327,6 +330,10 @@ void Controller::outputMessage(list<BaseInput> msgList) {
 
 void Controller::sendMessage(list<BaseInput> inputs) {
   if (inputs.size() > 0) {
+    if (inputs.size() > MAX_SEND_INPUT) {
+      Serial.println("Input Message Overload.");
+      return;
+    }
     string message;
     message = config->callsign.c_str();
     message = message + ":" + MorseInput::convert(inputs);
