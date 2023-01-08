@@ -96,7 +96,7 @@ public:
   //播放实际输入
   void play(const BaseInput* morseInput);
   //发送消息
-  void sendMessage(list<BaseInput> inputs);
+  void sendMessage(list<BaseInput>* inputs);
   //训练
   void startTraining();
 

@@ -109,7 +109,7 @@ void Controller::loop() {
           MorseInput::addLocalInput(baseInput);
 #ifdef DEBUG_LOG
           Serial.print("allLocalInput size:");
-          Serial.println(MorseInput::getAllLocalInput().size());
+          Serial.println(MorseInput::getAllLocalInput->size());
 #endif
           outputWave(INPUT_CODE_LINE, &baseInput);
         }
@@ -328,9 +328,9 @@ void Controller::outputMessage(list<BaseInput> msgList) {
   displayLine(SHOW_LETTER_LINE, " ");
 }
 
-void Controller::sendMessage(list<BaseInput> inputs) {
-  if (inputs.size() > 0) {
-    if (inputs.size() > MAX_SEND_INPUT) {
+void Controller::sendMessage(list<BaseInput>* inputs) {
+  if (inputs->size() > 0) {
+    if (inputs->size() > MAX_SEND_INPUT) {
       Serial.println("Input Message Overload.");
       return;
     }
@@ -433,7 +433,7 @@ void Controller::parseCmd() {
     }
   } else {
     commond = "";
-    list<BaseInput> inputs = MorseInput::getAllLocalInput();
+    list<BaseInput>* inputs = MorseInput::getAllLocalInput();
     sendMessage(inputs);
     MorseInput::clearAllLocalInput();
   }

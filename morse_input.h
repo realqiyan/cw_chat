@@ -16,7 +16,7 @@ private:
   //检查输入空格
   static bool checkInputSpace;
   //本地输入
-  static list<BaseInput> localInputs;
+  static list<BaseInput>* localInputs;
   //buffer
   static list<MorseInput> bufferInputs;
   //触发时间
@@ -56,7 +56,7 @@ public:
   //清空本地输入
   static void clearAllLocalInput();
   //获取所有本地输入
-  static list<BaseInput> getAllLocalInput();
+  static list<BaseInput>* getAllLocalInput();
 
   //转换单个输入
   static BaseInput convertInput(string inputStr);
@@ -65,7 +65,7 @@ public:
   //转换发送的消息
   static list<BaseInput> convert(string message);
   //转换输入为消息
-  static string convert(list<BaseInput> inputs);
+  static string convert(list<BaseInput>* inputs);
 };
 
 #endif

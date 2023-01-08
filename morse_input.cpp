@@ -3,8 +3,7 @@
 #include "HardwareSerial.h"
 
 //本地输入
-list<BaseInput> _LocalInput;
-list<BaseInput> MorseInput::localInputs = _LocalInput;
+list<BaseInput>* MorseInput::localInputs = new list<BaseInput>;
 
 //字符缓存
 list<MorseInput> _BufferInputs;
@@ -133,12 +132,12 @@ string MorseInput::checkInput() {
 }
 
 void MorseInput::addLocalInput(BaseInput input) {
-  localInputs.push_back(input);
+  localInputs->push_back(input);
 }
 void MorseInput::clearAllLocalInput() {
-  localInputs.clear();
+  localInputs->clear();
 }
-list<BaseInput> MorseInput::getAllLocalInput() {
+list<BaseInput>* MorseInput::getAllLocalInput() {
   return localInputs;
 }
 
@@ -192,10 +191,10 @@ list<BaseInput> MorseInput::convert(string message) {
   return msgList;
 }
 
-string MorseInput::convert(list<BaseInput> inputs) {
+string MorseInput::convert(list<BaseInput>* inputs) {
   string message;
   //使用迭代器输出list容器中的元素
-  for (list<BaseInput>::iterator it = inputs.begin(); it != inputs.end(); ++it) {
+  for (list<BaseInput>::iterator it = inputs->begin(); it != inputs->end(); ++it) {
     message = message + (*it).toString();
   }
   return message;
