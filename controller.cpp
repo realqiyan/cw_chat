@@ -22,8 +22,8 @@ Controller::Controller(Config* config, SSD1306Wire* display, PubSubClient* pubSu
   this->lineConfigs[1] = { 47, 20, Roboto_Slab_Bold_13, "" };
   //波形显示配置
   int displayWidth = display->getWidth();
-  this->waveConfigs[0] = new WaveConf(20, displayWidth, '0');
-  this->waveConfigs[1] = new WaveConf(46, displayWidth, '1');
+  this->waveConfigs[0] = new WaveConf(21, displayWidth, '0');
+  this->waveConfigs[1] = new WaveConf(45, displayWidth, '0');
 }
 Controller::~Controller() {
   for (int i = 0; i < MAX_WAVE_LINE; i++) {
@@ -164,11 +164,13 @@ void Controller::refresh() {
     short currCursor = waveConfig->cursor;
     if (waveConfig->type == '0') {
       //上边界
+      display->drawLine(0, currCursor - 3, 127, currCursor - 3);
       display->drawLine(0, currCursor - 2, 127, currCursor - 2);
       display->drawLine(0, currCursor - 1, 127, currCursor - 1);
       //下边界
       display->drawLine(0, currCursor + 2, 127, currCursor + 2);
       display->drawLine(0, currCursor + 3, 127, currCursor + 3);
+      display->drawLine(0, currCursor + 4, 127, currCursor + 4);
     }
     //电波
     for (int16_t j = 0; j < display->getWidth(); j++) {
@@ -442,6 +444,7 @@ void Controller::parseCmd() {
 // /P:***password***; 设置wifi密码(通过莫斯码输入，仅支持小写)
 // /C:XXX;            设置呼号(通过莫斯码输入，大写)
 // /L:1;              设置训练级别 1-40
+// /T;                训练
 // /SAVE;             保存更新
 // /RESET;            重置更新
 // /EXIT;             退出命令模式
@@ -457,6 +460,8 @@ bool Controller::doCmd(String cmd, String param) {
     config->updateCallsign(uParam.c_str());
   } else if (String("L") == cmd) {
     config->updateLevel(uParam.toInt());
+  } else if (String("T") == cmd) {
+    startTraining();
   } else if (String("SAVE") == cmd) {
     config->save();
     exitCmdMode();
