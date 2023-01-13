@@ -2,12 +2,12 @@
 
 ## 依赖库
 * PubSubClient
-* ESP8266 and ESP32 OLED driver for SSD1306 displays/U8g2
+* ESP8266 and ESP32 OLED driver for SSD1306 displays
 * Adafruit MQTT Library
 
 ## 接线说明
 ```
- CW练习&聊天室 Pro v0.2 by BG5AUN
+ CW练习&聊天室 Pro v0.3 by BG5AUN
 
  初始化请自行修改配置文件cw_config.h(配置呼号、WiFi、消息服务器)
 
@@ -24,7 +24,20 @@
    输入设备：
      12 - I/O
 
+ NodeMCU v1.2接线说明(仅数据线，电源和GND自己怎么方便怎么来，注意电压要求。):
+ nodemcu: https://docs.ai-thinker.com/esp8266/boards/nodemcu
+  显示器：
+    gpio14 - SCL
+    gpio12 - SDA
+  蜂鸣器：
+    gpio4 - I/O
+  按钮：
+    gpio2 - I/O
+  输入设备：
+    gpio5 - I/O
+    
  esp8266接线说明(仅数据线，电源和GND自己怎么方便怎么来，注意电压要求。):
+ 【使用该配置需要调整cw_config.h引脚配置】
   显示器：
     D1(gpio5) - SCL
     D2(gpio4) - SDA
@@ -34,6 +47,7 @@
     D6(gpio12) - I/O
   输入设备：
     D7(gpio13) - I/O
+
 ```
 
 esp32-S3接线图（黑色按钮接手键）
