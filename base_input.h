@@ -7,8 +7,6 @@ using namespace std;
 
 class BaseInput {
 public:
-  // 嗒的时间
-  static const short KEY_DAH_TIME = 160;
   //按压时常
   short cost = 0;
   //与上次输入间隔
@@ -20,18 +18,25 @@ public:
     this->span = span;
   }
   //根据耗时计算输入
-  char getInput() {
-    return BaseInput::calculateInput(cost);
+  char getInput(int diTime) {
+    return BaseInput::calculateInput(cost, diTime);
   }
-
-  static char calculateInput(short cost) {
+  // M.1677 : International Morse code
+  //    https://www.itu.int/rec/R-REC-M.1677-1-200910-I/en
+  //    https://www.itu.int/dms_pubrec/itu-r/rec/m/R-REC-M.1677-1-200910-I!!PDF-C.pdf
+  //符号的间隔和长度
+  //1 划是三个点的长度。
+  //2 构成同一字符的符号间的间隔是一个点的长度。
+  //3 字元之间的间隔是三个点的长度。
+  //4 单词之间的间隔是七个点的长度。
+  static char calculateInput(short cost, int diTime) {
     char inputChar;
     // 超过一半就算- 小于一半就算.
-    if (cost > KEY_DAH_TIME * 5) {
+    if (cost > diTime * 10) {
       inputChar = '\n';
-    } else if (cost > KEY_DAH_TIME * 2) {
+    } else if (cost > diTime * 7) {
       inputChar = ' ';
-    } else if (cost > KEY_DAH_TIME * 0.75) {
+    } else if (cost > diTime * 1.5) {
       inputChar = '-';
     } else if (cost > 0) {
       inputChar = '.';

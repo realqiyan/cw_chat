@@ -49,7 +49,7 @@ public:
   //输入结束
   static MorseInput* endInput(unsigned long releaseTime);
   //检查输入
-  static string checkInput();
+  static string checkInput(int diTime);
 
   //保存本地输入
   static void addLocalInput(BaseInput input);
@@ -61,7 +61,7 @@ public:
   //转换单个输入
   static BaseInput convertInput(string inputStr);
   //转换-.--这类字符串
-  static list<BaseInput> convertCode(string code);
+  static list<BaseInput> convertCode(string code, int diTime);
   //转换发送的消息
   static list<BaseInput> convert(string message);
   //转换输入为消息

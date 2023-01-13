@@ -21,10 +21,12 @@ public:
   string password;
   //级别 1-40
   int level;
+  //点的单位时间 50ms
+  int diTime;
   //配置版本（用于刷新EEPROM存储）
   long version;
 
-  Config(int mqttPort, string mqttServer, string topic, string callsign, string ssid, string password, int level, long version);
+  Config(int mqttPort, string mqttServer, string topic, string callsign, string ssid, string password, int level, int diTime, long version);
 
   //初始化配置
   void init();
@@ -38,6 +40,8 @@ public:
   void updatePassword(string password);
   // 更新呼号
   void updateCallsign(string callsign);
+  // 点的单位时间
+  void updateDiTime(int diTime);
   // 更新级别
   void updateLevel(int level);
 };

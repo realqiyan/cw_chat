@@ -14,15 +14,23 @@ const int BTN_BUILTIN = 15;
 
 #if defined(ARDUINO_ARCH_ESP8266)
 //esp8266引脚配置
-const int BEE_BUILTIN = 0;
-const int SCL_BUILTIN = 5;
-const int SDA_BUILTIN = 4;
-const int KEY_BUILTIN = 13;
-const int BTN_BUILTIN = 12;
+// const int BEE_BUILTIN = 0;
+// const int SCL_BUILTIN = 5;
+// const int SDA_BUILTIN = 4;
+// const int KEY_BUILTIN = 13;
+// const int BTN_BUILTIN = 12;
+
+//NodeMUC引脚配置
+const int SCL_BUILTIN = 14;
+const int SDA_BUILTIN = 12;
+const int KEY_BUILTIN = 5;
+const int BEE_BUILTIN = 4;
+const int BTN_BUILTIN = 2;
+
 #endif
 
 
 //初始化请自行修改配置(配置呼号、WiFi、消息服务器)
-Config cwConfig = Config(1883, "broker-cn.emqx.io", "/cw/bg5aun", "BG5AUN", "***ssid***", "***password***", 1, 1);
+Config cwConfig = Config(1883, "broker-cn.emqx.io", "/cw/bg5aun", "TEST", "***ssid***", "***password***", 1, 50, 20230113);
 
 #endif

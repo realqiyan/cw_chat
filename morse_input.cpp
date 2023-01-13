@@ -34,19 +34,22 @@ void MorseInput::begin(unsigned long triggerTime) {
 void MorseInput::end(unsigned long releaseTime) {
   this->end(releaseTime, preInput);
 }
+
+//单词之间的间隔是七个点的长度
+const int MAX_SPAN_TIME = 300;
 //输入结束
 void MorseInput::end(unsigned long releaseTime, MorseInput* preInputParam) {
   this->releaseTime = releaseTime;
   this->cost = this->releaseTime - this->triggerTime;
   if (preInputParam != NULL) {
     int currSpan = this->triggerTime - preInputParam->releaseTime;
-    if (currSpan > MorseInput::KEY_DAH_TIME * 3) {
-      currSpan = MorseInput::KEY_DAH_TIME * 3;
+    if (currSpan > MAX_SPAN_TIME) {
+      currSpan = MAX_SPAN_TIME;
     }
     this->span = currSpan;
   } else {
     //首次输入自动添加空格
-    this->span = MorseInput::KEY_DAH_TIME;
+    this->span = MAX_SPAN_TIME;
   }
 }
 
@@ -98,22 +101,22 @@ MorseInput* MorseInput::endInput(unsigned long releaseTime) {
   return NULL;
 }
 //检查输入
-string MorseInput::checkInput() {
+string MorseInput::checkInput(int diTime) {
   //当前没有输入 并且已经存在一个历史输入
   if (currInput == NULL && preInput != NULL) {
     int cost = millis() - preInput->getReleaseTime();
     //识别字符
     string code;
-    // 等待时间超过一个划还没有输入则开始识别
-    if (cost > MorseInput::KEY_DAH_TIME && bufferInputs.size() > 0) {
+    // 字元之间的间隔是三个点的长度（等待时间超过一个划还没有输入则开始识别）
+    if (cost > diTime * 3 && bufferInputs.size() > 0) {
       for (list<MorseInput>::iterator it = bufferInputs.begin(); it != bufferInputs.end(); ++it) {
-        code = code + (*it).getInput();
+        code = code + (*it).getInput(diTime);
       }
       clearAllBufferInput();
       checkInputSpace = true;
       return code;
     }
-    char inputChar = MorseInput::calculateInput(cost);
+    char inputChar = MorseInput::calculateInput(cost, diTime);
     if (inputChar == '\n' && bufferInputs.size() == 0) {
       //输入结束
       if (preInput != NULL) {
@@ -160,18 +163,18 @@ BaseInput MorseInput::convertInput(string inputStr) {
   return morseInput;
 }
 
-list<BaseInput> MorseInput::convertCode(string code) {
+list<BaseInput> MorseInput::convertCode(string code, int diTime) {
   list<BaseInput> msgList;
   for (int i = 0; i < code.length(); i++) {
     int cost;
     if (code[i] == '.') {
-      cost = BaseInput::KEY_DAH_TIME / 3;
+      cost = diTime;
     } else if (code[i] == '-') {
-      cost = BaseInput::KEY_DAH_TIME;
+      cost = diTime * 3;
     } else {
       continue;
     }
-    int span = BaseInput::KEY_DAH_TIME / (i == 0 ? 1 : 3);
+    int span = diTime * (i == 0 ? 3 : 1);
     BaseInput dida(cost, span);
     msgList.push_back(dida);
   }

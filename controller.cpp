@@ -86,6 +86,7 @@ void Controller::loop() {
   //练习
   int btnVal = digitalRead(btnPin);
   if (btnVal == LOW) {
+    Serial.println("startTraining");
     startTraining();
   }
 
@@ -117,7 +118,7 @@ void Controller::loop() {
     }
   }
   //输入转字符
-  string code = MorseInput::checkInput();
+  string code = MorseInput::checkInput(config->diTime);
   if (code != "") {
     if (code == " ") {
       displayLine(INPUT_LETTER_LINE, " ");
@@ -256,7 +257,7 @@ void Controller::play(const BaseInput* morseInput) {
 
 void Controller::outputWave(int line, const BaseInput* input) {
   //一个嘀占2个像素
-  int pixelTime = MorseInput::KEY_DAH_TIME / 6;
+  int pixelTime = config->diTime / 2;
   //转0 不足一个像素算一个像素
   int countSpan = input->span / pixelTime;
   countSpan = countSpan == 0 ? 1 : countSpan;
@@ -307,10 +308,10 @@ void Controller::outputMessage(list<BaseInput> msgList) {
     play(&*it);
     //显示波形displayWave
     outputWave(SHOW_CODE_LINE, &*it);
-    char inputChar = it->getInput();
+    char inputChar = it->getInput(config->diTime);
     int inputSpan = it->span;
-    if (inputSpan > MorseInput::KEY_DAH_TIME * 1.5) {
-      if (inputSpan > MorseInput::KEY_DAH_TIME * 2) {
+    if (inputSpan > config->diTime * 7) {
+      if (inputSpan > config->diTime * 7) {
         displayLine(SHOW_LETTER_LINE, " ");
       }
       if (inputMorseCode != "") {
@@ -363,7 +364,7 @@ void Controller::startTraining() {
     letterChar = MorseKoch::getRandomCharByLevel(level);
     //获取莫斯码
     string code = MorseCode::getMorseCode(letterChar);
-    list<BaseInput> inputs = MorseInput::convertCode(code);
+    list<BaseInput> inputs = MorseInput::convertCode(code, config->diTime);
     outputMessage(inputs);
     delay(50);
   }
@@ -444,6 +445,7 @@ void Controller::parseCmd() {
 // /P:***password***; 设置wifi密码(通过莫斯码输入，仅支持小写)
 // /C:XXX;            设置呼号(通过莫斯码输入，大写)
 // /L:1;              设置训练级别 1-40
+// /D:50;             设置点的单位时间50ms
 // /T;                训练
 // /SAVE;             保存更新
 // /RESET;            重置更新
@@ -460,6 +462,8 @@ bool Controller::doCmd(String cmd, String param) {
     config->updateCallsign(uParam.c_str());
   } else if (String("L") == cmd) {
     config->updateLevel(uParam.toInt());
+  } else if (String("D") == cmd) {
+    config->updateDiTime(uParam.toInt());
   } else if (String("T") == cmd) {
     startTraining();
   } else if (String("SAVE") == cmd) {

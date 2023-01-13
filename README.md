@@ -2,7 +2,7 @@
 
 ## 依赖库
 * PubSubClient
-* ESP8266 and ESP32 OLED driver for SSD1306 displays
+* ESP8266 and ESP32 OLED driver for SSD1306 displays/U8g2
 * Adafruit MQTT Library
 
 ## 接线说明
@@ -49,6 +49,7 @@ esp32-S3接线图（黑色按钮接手键）
 /P:***password***; 设置wifi密码(通过莫斯码输入，仅支持小写)
 /C:XXX;            设置呼号(通过莫斯码输入，大写)
 /L:1;              设置训练级别 1-40
+/D:50;             设置点的单位时间50ms
 /T;                训练
 /SAVE;             保存更新
 /RESET;            重置更新

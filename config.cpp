@@ -1,5 +1,7 @@
 #include "config.h"
 #include <EEPROM.h>
+#include "morse_input.h"
+#include "base_input.h"
 #include "morse_koch.h"
 
 int configSize = 256;
@@ -10,7 +12,7 @@ void writeInt(int* addr, int val);
 int readInt(int* addr);
 
 
-Config::Config(int mqttPort, string mqttServer, string topic, string callsign, string ssid, string password, int level, long version) {
+Config::Config(int mqttPort, string mqttServer, string topic, string callsign, string ssid, string password, int level, int diTime, long version) {
   this->mqttPort = mqttPort;
   this->mqttServer = mqttServer;
   this->topic = topic;
@@ -18,6 +20,7 @@ Config::Config(int mqttPort, string mqttServer, string topic, string callsign, s
   this->ssid = ssid;
   this->password = password;
   this->level = level;
+  this->diTime = diTime;
   this->version = version;
 }
 
@@ -55,6 +58,8 @@ bool Config::save() {
   writeString(&addr, this->password);
   //写入level
   writeInt(&addr, this->level);
+  //写入diTime
+  writeInt(&addr, this->diTime);
 
   // 存储标识
   int versionSize = sizeof(this->version);
@@ -75,6 +80,7 @@ void Config::read() {
   this->ssid = readString(&addr);
   this->password = readString(&addr);
   this->level = readInt(&addr);
+  this->diTime = readInt(&addr);
 }
 
 void Config::updateSsid(string ssid) {
@@ -91,6 +97,11 @@ void Config::updateCallsign(string callsign) {
 
 void Config::updateLevel(int level) {
   this->level = level;
+}
+
+
+void Config::updateDiTime(int diTime) {
+  this->diTime = diTime;
 }
 
 void writeString(int* addr, string str) {
