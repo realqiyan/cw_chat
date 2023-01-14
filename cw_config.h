@@ -4,20 +4,20 @@
 
 #if defined(ARDUINO_ARCH_ESP32)
 //esp32引脚配置
-const int BEE_BUILTIN = 3;
 const int SCL_BUILTIN = 6;
 const int SDA_BUILTIN = 7;
 const int KEY_BUILTIN = 12;
+const int BEE_BUILTIN = 8;
 const int BTN_BUILTIN = 15;
 #endif
 
 
 #if defined(ARDUINO_ARCH_ESP8266)
-//esp8266引脚配置
-// const int BEE_BUILTIN = 0;
+//esp8266引脚配置【old】
 // const int SCL_BUILTIN = 5;
 // const int SDA_BUILTIN = 4;
 // const int KEY_BUILTIN = 13;
+// const int BEE_BUILTIN = 0;
 // const int BTN_BUILTIN = 12;
 
 //NodeMUC引脚配置
