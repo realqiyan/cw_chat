@@ -111,17 +111,21 @@ void Controller::loop() {
 #endif
       }
     }
-    if (currentInputPin == btnPin) {
-      keyVal = btnPinVal;
-    } else if (currentInputPin == keyPin) {
-      keyVal = keyPinVal;
-    } else {
-      //默认使用btnPinVal
-      keyVal = btnPinVal;
-    }
   }
 
-
+  //根据配置获取按键值
+  if (currentInputPin == btnPin) {
+    keyVal = btnPinVal;
+  } else if (currentInputPin == keyPin) {
+    keyVal = keyPinVal;
+  } else {
+    //默认根据btnFunc确认使用哪个pin
+    if (config->btnFunc == 1) {
+      keyVal = btnPinVal;
+    } else {
+      keyVal = keyPinVal;
+    }
+  }
 
   //练习
   if (doStartTraining) {
