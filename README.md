@@ -39,7 +39,8 @@
 ```
 
 esp32-S3接线图（黑色按钮接手键）
-![image](https://user-images.githubusercontent.com/4379546/210372981-e6d0ddc1-2fce-4d82-9214-52f446e37c48.png)
+![image](https://user-images.githubusercontent.com/4379546/212467316-5092111c-2fd7-4d7b-8fc6-021e4d7fe6ee.png)
+
 
 ## 配置说明
 
