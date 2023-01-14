@@ -22,19 +22,24 @@ Config::Config(int mqttPort, string mqttServer, string topic, string callsign, s
   this->level = level;
   this->diTime = diTime;
   this->version = version;
+  this->btnFunc = 0;
 }
 
-
+//预留button按钮功能上限
+const int MAX_BTN_FUNC = 5;
 
 void Config::init() {
   EEPROM.begin(configSize);
-
   int versionSize = sizeof(this->version);
   int addr = configSize - versionSize;
   int romVersion = readInt(&addr);
-
   if (romVersion >= this->version) {
     this->read();
+    // 兼容老版本 初始化按钮功能
+    if (this->btnFunc > MAX_BTN_FUNC || this->btnFunc < 0) {
+      this->btnFunc = 0;
+      this->save();
+    }
   } else {
     this->save();
   }
@@ -42,6 +47,7 @@ void Config::init() {
 
 bool Config::save() {
   //int|int|char[]|int|char[]|int|char[]|int|char[]|int|char[]
+  this->version = this->version + 1;
   //读取顺序必须和存储顺序一致
   int addr = 0;
   //写入mqttPort
@@ -60,6 +66,8 @@ bool Config::save() {
   writeInt(&addr, this->level);
   //写入diTime
   writeInt(&addr, this->diTime);
+  //写入btnFunc
+  writeInt(&addr, this->btnFunc);
 
   // 存储标识
   int versionSize = sizeof(this->version);
@@ -81,6 +89,7 @@ void Config::read() {
   this->password = readString(&addr);
   this->level = readInt(&addr);
   this->diTime = readInt(&addr);
+  this->btnFunc = readInt(&addr);
 }
 
 void Config::updateSsid(string ssid) {
@@ -99,9 +108,12 @@ void Config::updateLevel(int level) {
   this->level = level;
 }
 
-
 void Config::updateDiTime(int diTime) {
   this->diTime = diTime;
+}
+
+void Config::updateBtnFunc(int btnFunc) {
+  this->btnFunc = btnFunc;
 }
 
 void writeString(int* addr, string str) {

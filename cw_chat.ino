@@ -45,7 +45,7 @@ void setup() {
   pinMode(BEE_BUILTIN, OUTPUT);
   pinMode(BTN_BUILTIN, INPUT_PULLUP);
   pinMode(KEY_BUILTIN, INPUT_PULLUP);
-  //初始化
+  //初始化配置
   cwConfig.init();
   //设置回调
   client.setCallback(callback);

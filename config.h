@@ -23,6 +23,8 @@ public:
   int level;
   //点的单位时间 50ms
   int diTime;
+  //按钮功能 0默认练习按钮 1发报按钮
+  int btnFunc;
   //配置版本（用于刷新EEPROM存储）
   long version;
 
@@ -44,6 +46,8 @@ public:
   void updateDiTime(int diTime);
   // 更新级别
   void updateLevel(int level);
+  // 更新按钮功能
+  void updateBtnFunc(int btnFunc);
 };
 
 #endif

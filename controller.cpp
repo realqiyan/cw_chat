@@ -63,6 +63,9 @@ bool Controller::init() {
   return true;
 }
 
+//当前执行输入的按键接口
+int currentInputPin = -1;
+
 void Controller::loop() {
   //网络
   if (WiFi.status() == WL_CONNECTED) {
@@ -83,16 +86,50 @@ void Controller::loop() {
     pubSubClient->loop();
   }
 
+  // 练习标记
+  bool doStartTraining = false;
+  // 输入信号值
+  int keyVal;
+
+  int btnPinVal = digitalRead(btnPin);
+  int keyPinVal = digitalRead(keyPin);
+
+  if (config->btnFunc == 0) {
+    doStartTraining = (btnPinVal == LOW);
+  } else if (config->btnFunc == 1) {
+    //当前输入pin未确认时 使用优先按下的键，直到输入结束，无输入默认btnPin
+    if (currentInputPin == -1) {
+      if (keyPinVal == LOW) {
+        currentInputPin = keyPin;
+#ifdef DEBUG_LOG
+        Serial.println("currentInputPin = keyPin");
+#endif
+      } else if (btnPinVal == LOW) {
+        currentInputPin = btnPin;
+#ifdef DEBUG_LOG
+        Serial.println("currentInputPin = btnPin");
+#endif
+      }
+    }
+    if (currentInputPin == btnPin) {
+      keyVal = btnPinVal;
+    } else if (currentInputPin == keyPin) {
+      keyVal = keyPinVal;
+    } else {
+      //默认使用btnPinVal
+      keyVal = btnPinVal;
+    }
+  }
+
+
+
   //练习
-  int btnVal = digitalRead(btnPin);
-  if (btnVal == LOW) {
+  if (doStartTraining) {
     Serial.println("startTraining");
     startTraining();
   }
 
-  //key
-  int keyVal = digitalRead(keyPin);
-  //手键处理
+  //key手键处理
   if (preKeyVal != keyVal && millis() - preChangeTime > KEY_SHAKE_TIME) {
     preChangeTime = millis();
     preKeyVal = keyVal;
@@ -110,7 +147,7 @@ void Controller::loop() {
           MorseInput::addLocalInput(baseInput);
 #ifdef DEBUG_LOG
           Serial.print("allLocalInput size:");
-          Serial.println(MorseInput::getAllLocalInput->size());
+          Serial.println(MorseInput::getAllLocalInput()->size());
 #endif
           outputWave(INPUT_CODE_LINE, &baseInput);
         }
@@ -120,6 +157,10 @@ void Controller::loop() {
   //输入转字符
   string code = MorseInput::checkInput(config->diTime);
   if (code != "") {
+    currentInputPin = -1;
+#ifdef DEBUG_LOG
+    Serial.println("currentInputPin = -1");
+#endif
     if (code == " ") {
       displayLine(INPUT_LETTER_LINE, " ");
     } else if (code == "\n") {
@@ -297,10 +338,6 @@ void Controller::outputWave(int line, const BaseInput* input) {
 }
 
 void Controller::outputMessage(list<BaseInput> msgList) {
-#ifdef DEBUG_LOG
-  Serial.print("displayMessage:");
-  Serial.println(MorseInput::convert(msgList).c_str());
-#endif
   //处理字符
   String inputMorseCode;
   for (list<BaseInput>::iterator it = msgList.begin(); it != msgList.end(); ++it) {
@@ -447,6 +484,7 @@ void Controller::parseCmd() {
 // /L:1;              设置训练级别 1-40
 // /D:50;             设置点的单位时间50ms
 // /T;                训练
+// /BTN:0;            切换按钮功能 0:触发训练按钮 1:发报按钮
 // /SAVE;             保存更新
 // /RESET;            重置更新
 // /EXIT;             退出命令模式
@@ -464,6 +502,8 @@ bool Controller::doCmd(String cmd, String param) {
     config->updateLevel(uParam.toInt());
   } else if (String("D") == cmd) {
     config->updateDiTime(uParam.toInt());
+  } else if (String("BTN") == cmd) {
+    config->updateBtnFunc(uParam.toInt());
   } else if (String("T") == cmd) {
     startTraining();
   } else if (String("SAVE") == cmd) {

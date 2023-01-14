@@ -31,6 +31,6 @@ const int BTN_BUILTIN = 2;
 
 
 //初始化请自行修改配置(配置呼号、WiFi、消息服务器)
-Config cwConfig = Config(1883, "broker-cn.emqx.io", "/cw/bg5aun", "TEST", "***ssid***", "***password***", 1, 50, 20230113);
+Config cwConfig = Config(1883, "broker-cn.emqx.io", "/cw/bg5aun", "TEST", "***ssid***", "***password***", 1, 60, 2023011501);
 
 #endif
